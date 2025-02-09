@@ -1,0 +1,963 @@
+{{ define "layout" }}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Form</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/app/cdn/css/flatpickr.min.css" type="text/css">
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #333;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .table-container {
+            margin-top: 20px;
+        }
+        .table {
+            font-size: 0.85rem; /* Smaller font size */
+        }
+        .table th, .table td {
+            padding: 6px 8px; /* Reduce padding */
+        }
+        .btn-sm {
+            font-size: 0.75rem; /* Smaller buttons */
+            padding: 4px 6px;
+        }        
+        .action-btn {
+            display: inline-block;
+        }
+        .form-container {
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .top-ribbon {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 10px;
+        }
+        .side-menu {
+            background-color: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            height: 100vh;
+            padding-top: 20px;
+        }
+        .menu-item {
+            padding: 10px 20px;
+            display: block;
+            color: #333;
+            text-decoration: none;
+        }
+        .menu-item:hover {
+            background-color: #e9ecef;
+        }
+        .content {
+            padding: 20px;
+        }
+        .col-md-3 {
+            max-width: 200px;
+        }
+        .paper-look {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 12px;
+            background: #fff9e3;
+            border: 1px solid #e2c490;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-height: 150px; /* Adjust this value to set the minimum height */
+            max-height: 500px; /* Adjust this value as needed */
+            overflow-y: auto; /* This makes the div scrollable */
+        }
+        .full-width {
+            width: 100%;
+        }
+    </style>
+    
+</head>
+<body>
+    <!-- Top Ribbon -->
+    <div class="top-ribbon d-flex justify-content-between">
+        <div class="ms-3">
+            <a href="/" class="me-3">Home</a>
+            <a href="/about" class="me-3">About</a>
+            <a href="#">Contact</a>
+        </div>
+        <div class="me-3">
+            <a href="/logout" class="me-3">Logout</a>
+            <a href="#">My Account</a>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Left-Hand Side Menu -->
+            <div class="col-md-3 side-menu">
+                {{if .IsIDPos }}
+                <a href="/cases/encounters/new/{{.Form.ID}}/0" class="menu-item">New Encounter</a>
+                <a href="/cases/encounters/list/{{.Form.ID}}" class="menu-item">Encounters</a>
+                <a href="/cases/discharge/{{.Form.ID}}" class="menu-item">Discharge</a>
+                <a href="/cases/patientreport/{{.Form.ID}}" class="menu-item">Report</a>
+                {{end}}
+                <a href="/patienthelp" class="menu-item">Help</a>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="content">
+                    <h1>Patient Form</h1>
+
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">General</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="encounter-tab" data-toggle="tab" href="#encounter" role="tab" aria-controls="encounter" aria-selected="false">Encounters</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="labs-tab" data-toggle="tab" href="#labs" role="tab" aria-controls="labs" aria-selected="false">Labs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="treat-tab" data-toggle="tab" href="#treat" role="tab" aria-controls="treat" aria-selected="false">Treatment</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">                       
+
+
+                            <div class="form-container">
+                                <form method="post" action="/cases/save" id="caseForm">
+                                    <div class="row registration-input-row">    
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="firstname">First Name</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.Firstname.String}}" id="firstname" name="firstname" type="text" required/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="lastname">Surname</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.Lastname.String}}" id="lastname" name="lastname" type="text" required/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="othername">Other Name </label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.Othername.String}}" id="othername" name="othername" type="text"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="gender">Gender </label>
+                                                <div class="col-sm-7">
+                                                    <select class="form-control-sm patient-input form-select"  name="gender" id="gender" aria-label="Gender" required>
+                                                        {{ range $key, $value := index .Optionz "sex" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("gender").value = "{{.Form.Gender.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="date_of_birth">Date of Birth</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input datetimepicker" value="{{.Form.DateOfBirth.String}}" id="date_of_birth" name="date_of_birth" type="text" placeholder="yyyy-mm-dd" data-options='{"disableMobile":true,"dateFormat":"Y-m-d"}'/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="age">Age</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.Age.Float64}}" id="age" name="age" type="text"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="marital">Marital State</label>
+                                                <div class="col-sm-7">
+                                                    <!--<input class="form-control form-control-sm patient-input" id="marital_status" name="marital_status" type="text"/>-->
+                                                    <select class="form-control-sm patient-input form-select"  name="marital" id="marital" aria-label="Marital Status">
+                                                        {{ range $key, $value := index .Optionz "marital" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("marital").value = "{{ .Form.Marital.Int64 }}";
+                                                    });
+
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="nin">NIN</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.Nin.String}}" id="nin" name="nin" type="text"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="nationality">Nationality</label>
+                                                <div class="col-sm-7">
+                                                    <select class="form-control-sm patient-input form-select" name="nationality" id="nationality" aria-label="Nationality">
+                                                    {{ range $key, $value := index .Optionz "nationality" }}  
+                                                        <option value="{{ $key }}">{{ $value }}</option>
+                                                    {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("nationality").value = "{{.Form.Nationality.Int64}}";
+                                                    });
+
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="adm_date">Admin. Date</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input datetimepicker" value="{{.Form.AdmDate.String}}" id="adm_date" name="adm_date" type="text" placeholder="yyyy-mm-dd" data-options='{"disableMobile":true,"dateFormat":"Y-m-d"}' required/>
+                                                
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="transfer">Transfered?</label>
+                                                <div class="col-sm-7">
+                                                    <select class="form-control-sm patient-input form-select" name="transfer" id="transfer" aria-label="Transfer">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("transfer").value = "{{.Form.Transfer.Int64}}";
+                                                    });
+
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="adm_from">From.</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.AdmFrom.String}}" id="adm_from" name="adm_from" type="text"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr style="width: 100%;"/>
+                                    <div class="row registration-input-row">    
+                                        <div class="col-lg-3">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="lab_no">Lab#</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.LabNo.String}}" id="lab_no" name="lab_no" type="text"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="cif_no">CIF#</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.CifNo.String}}" id="cif_no" name="cif_no" type="text"/>
+                                                </div>
+                                            </div>                        
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="etu_no">ETU#</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.EtuNo.String}}" id="etu_no" name="etu_no" type="text"/>
+                                                </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="case_no">Case#</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.CaseNo.String}}" id="case_no" name="case_no" type="text"/>
+                                                </div>
+                                            </div>
+                                        
+                                        </div>
+                                    </div>
+                                    <hr style="width: 100%;"/>  
+                                    <div class="row registration-input-row">
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label col-form-label-sm" for="adm_date">Treatment Site</label>
+                                                <div class="col-sm-6">
+                                                    {{ GetOptionField "facility" "site" "Treatment Site" "" .Form.Site.Int64 1 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label col-form-label-sm" for="adm_date">Baseline Status</label>
+                                                <div class="col-sm-6">
+                                                    {{ GetOptionField "Status" "status" "Baseline Status" .Form.Status.String 0 1 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+
+                                        </div>
+                                    </div>
+                                    <hr style="width: 100%;"/>              
+                                    <div class="row registration-input-row">
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="occupation">Occupation</label>
+                                                <div class="col-sm-7">
+                                                    <select class="form-control-sm patient-input form-select" name="occupation" id="occupation" aria-label="Occupation">
+                                                        {{ range $key, $value := index .Optionz "occup" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("occupation").value = "{{.Form.Occupation.Int64}}";
+                                                    });
+
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm" for="occupation_aza">Specify</label>
+                                                <div class="col-sm-7">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.OccupationAza.String}}" id="occupation_aza" name="occupation_aza" type="text"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="date_symptom_onset">Date symptom onset</label>
+                                                <div class="col-sm-5">
+                                                    <input class="form-control form-control-sm patient-input datetimepicker" value="{{.Form.DateSymptomOnset.String}}" id="date_symptom_onset" name="date_symptom_onset" type="text" placeholder="yyyy-mm-dd" data-options='{"disableMobile":true,"dateFormat":"Y-m-d"}'/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="date_isolation">Date Isolation</label>
+                                                <div class="col-sm-5">
+                                                    <input class="form-control form-control-sm patient-input datetimepicker" value="{{.Form.DateIsolation.String}}" id="date_isolation" name="date_isolation" type="text" placeholder="yyyy-mm-dd" data-options='{"disableMobile":true,"dateFormat":"Y-m-d"}'/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="pregnant">Pregnant?</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="pregnant" id="pregnant" aria-label="Pregnant">
+                                                        {{ range $key, $value := index .Optionz "preg" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("pregnant").value = "{{.Form.Pregnant.Int64}}";
+                                                    });
+
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="adm_ward">Admis. Ward</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="adm_ward" id="adm_ward" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "ward" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("adm_ward").value = "{{.Form.AdmWard.String}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>    
+                                    <hr style="width: 100%;"/>
+                                    <div class="row registration-input-row">
+                                        <div class="col-lg-6">
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" >Comorbid conditions</label>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="tb">Tuberculosis</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="tb" id="tb" aria-label="Tuberculosis">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("tb").value = "{{.Form.Tb.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="asplenia">Asplenia</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="asplenia" id="asplenia" aria-label="Asplenia">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("asplenia").value = "{{.Form.Asplenia.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="hep">Hepatitis</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="hep" id="hep" aria-label="Hepatitis">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("hep").value = "{{.Form.Hep.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="diabetes">Diabetes</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="diabetes" id="diabetes" aria-label="Diabetes">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("diabetes").value = "{{.Form.Diabetes.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="hiv">HIV</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="hiv" id="hiv" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("hiv").value = "{{.Form.Hiv.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="liver">Chronic Liver disease</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="liver" id="liver" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("liver").value = "{{.Form.Liver.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" >.</label>
+                                                
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="malignancy">Malignancy/Chemotherapy</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="malignancy" id="malignancy" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("malignancy").value = "{{.Form.Malignancy.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="heart">Chronic heart failure</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="heart" id="heart" aria-label="Heart">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("heart").value = "{{.Form.Heart.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" >including congenital disease</label>                            
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="pulmonary">Chronic pulmonary disease</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="pulmonary" id="pulmonary" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("pulmonary").value = "{{.Form.Pulmonary.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="kidney">Chronic kidney disease</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="kidney" id="kidney" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("kidney").value = "{{.Form.Kidney.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="neurologic">Chronic neurologic condition</label>
+                                                <div class="col-sm-5">
+                                                    <select class="form-control-sm patient-input form-select" name="neurologic" id="neurologic" aria-label="Adm Ward">
+                                                        {{ range $key, $value := index .Optionz "yn_extra" }}  
+                                                            <option value="{{ $key }}">{{ $value }}</option>
+                                                        {{ end }}
+                                                    </select>
+                                                    <script>
+                                                    document.addEventListener("DOMContentLoaded", function() {
+                                                        document.getElementById("neurologic").value = "{{.Form.Neurologic.Int64}}";
+                                                    });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <label class="col-sm-5 col-form-label col-form-label-sm" for="other">Others</label>
+                                                <div class="col-sm-5">
+                                                    <input class="form-control form-control-sm patient-input" value="{{.Form.Other.String}}" id="other" name="other" type="text"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="hidden" name="csrf_token" id="csrf_token" value="">
+                                    <input type="hidden" name="id" id="id" value="{{.Form.ID}}">
+                                    <input type="hidden" name="from" id="from" value="">
+
+                                    <button type="submit" id="submitButton" class="btn btn-sm btn-success mt-3">Save</button>
+                                    <button type="button" id="save_cButton" class="btn btn-sm btn-success mt-3">Save & Close</button>
+                                    <button type="button" id="cancelButton" class="btn btn-sm btn-success mt-3">Cancel</button>
+                                    <button type="button" id="helpButton"   class="btn btn-sm btn-success mt-3">Help</button>
+                                </form>
+
+                                <hr style="width: 100%;"/>         
+                                                    
+                            </div>
+
+
+                        </div>
+                        <div class="tab-pane fade" id="encounter" role="tabpanel" aria-labelledby="encounter-tab">
+                            <p>Encounters </p> 
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <!-- Left Side: Scrollable Table -->
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">Encounter List <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#dataEntryModal">New</a></div>
+                                            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Attending Clinician</th>
+                                                            <th>Date</th>
+                                                            <th>Time</th>
+                                                            <th>Type</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- Dynamically load encounter rows here -->
+                                                         <tr>
+                                                            <td>1</td><td>Mbaka</td><td>14Mar2024</td><td>Morning</td><td>Baseline</td>
+                                                         </tr>
+                                                         <tr>
+                                                            <td>2</td><td>Iqbal</td><td>15Apr2024</td><td>Evening</td><td>Follow-up</td>
+                                                         </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                    <!-- Right Side: Encounter Form -->
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">Encounter Details</div>
+                                            <div class="card-body">
+                                                <div class="paper-look">
+                                                   
+                                                        Symptomms<br/>
+                                                        <table class="full-width" border="1">
+                                                            <tr>
+                                                                <td valign="top">
+                                                                    Fever:<br/>
+                                                                    Fatigue:<br/>
+                                                                    Weakness:<br/>
+                                                                    Malaise:<br/>
+                                                                    Myalgia:<br/>
+                                                                    Anorexia:<br/>
+                                                                    Sore throat
+                                                                </td>
+                                                                <td valign="top">
+                                                                    Headache:<br/> 
+                                                                    Nausea:<br/> 
+                                                                    Chest pain:<br/> 
+                                                                    Joint Pain:<br/> 
+                                                                    Hiccups:<br/>
+                                                                    Cough:<br/>
+                                                                </td>
+                                                                <td valign="top">
+                                                                    Chest pain:<br/>
+                                                                    Difficulty breathing:<br/>
+                                                                    Difficulty swallowing:<br/> 
+                                                                    Abdominal pain:<br/> 
+                                                                    Diarrhoea:<br/>
+                                                                    Vomiting:<br/>
+                                                                    Irritability / Confusion:<br/> 
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+
+                                                        <br/>
+                                                        Signs<br/>
+                                                        <table class="full-width" border="1">
+                                                            <tr>
+                                                                <td valign="top">
+                                                                    Pharyngeal erythema:<br/>  
+                                                                    Pharyngeal exudate:<br/>  
+                                                                    Conjunctival injection/bleeding:<br/>  
+                                                                    Oedema of face/neck:<br/> 
+                                                                    Tender abdomen:<br/> 
+                                                                    Sunken eyes or fontanelle:<br/>  
+                                                                    Tenting on skin pinch:<br/>  
+                                                                    Palpable liver:<br/> 
+                                                                    Palpable spleen Rash:<br/> 
+                                                                    Jaundice:<br/> 
+
+                                                                </td>
+                                                                <td valign="top">
+                                                                    Enlarged lymph nodes:<br/>
+                                                                    Lower extremity oedema :<br/> 
+                                                                    Bleeding:<br/> 
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <br/>
+                                                        Specimen <br/>
+                                                        <table class="full-width" border="1">
+                                                            <tr>
+                                                                <td valign="top">
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <br/>
+                                                        Lab Results <br/>
+                                                        <table class="full-width" border="1">
+                                                            <tr>
+                                                                <td valign="top">
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <br/>
+                                                        Medications <br/>
+                                                        <table class="full-width" border="1">
+                                                            <tr>
+                                                                <td valign="top">
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                </div>                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="tab-pane fade" id="labs" role="tabpanel" aria-labelledby="labs-tab">
+                            <p>Labs</p>
+                        </div>
+
+                        <div class="tab-pane fade" id="treat" role="tabpanel" aria-labelledby="treat-tab">
+                            <p>treatment</p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="dataEntryModal" tabindex="-1" aria-labelledby="dataEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dataEntryModalLabel">Encounter Form</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="/cases/save" id="caseEncounterForm">
+                        <div class="row registration-input-row">
+                            <div class="col-lg-3">
+                                <label class="col-sm-3 col-form-label col-form-label-sm" for="etu">Type: <span class="text-danger">*</span></label>
+                                <div class="col-sm-7">
+                                    <input class="form-control form-control-sm patient-input" value="" id="etype" name="etype" type="text" required/>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <label class="col-sm-3 col-form-label col-form-label-sm" for="etu">Encounter Date: <span class="text-danger">*</span></label>
+                                <div class="col-sm-7">
+                                    <input class="form-control form-control-sm patient-input" value="" id="edate" name="edate" type="text" required/>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <label class="col-sm-3 col-form-label col-form-label-sm" for="etu">Time: <span class="text-danger">*</span></label>
+                                <div class="col-sm-7">
+                                    <input class="form-control form-control-sm patient-input" value="" id="etime" name="etu" type="etime" required/>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <label class="col-sm-3 col-form-label col-form-label-sm" for="etu">Clinician: <span class="text-danger">*</span></label>
+                                <div class="col-sm-7">
+                                    <input class="form-control form-control-sm patient-input" value="" id="clinician" name="clinician" type="text" required/>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row registration-input-row">    
+                            <div class="col-lg-4">
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="firstname">Heart rate (bpm): <span class="text-danger">*</span></label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="heart" name="heart" type="text" required/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="lastname">BP (systolic) (mmHg): </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="systolic" name="systolic" type="text" required/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="othername">BP (diastolic) (mmHg): </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="diastolic" name="diastolic" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="gender">Capillary refill > 3 sec? </label>
+                                    <div class="col-sm-7">
+                                        <select class="form-control-sm patient-input form-select"  name="refill" id="refill" aria-label="Capillary refill" required>
+                                            {{ range $key, $value := index .Optionz "yn" }}  
+                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            {{ end }}
+                                        </select>
+                                        <script>
+                                        document.addEventListener("DOMContentLoaded", function() {
+                                            document.getElementById("refill").value = "";
+                                        });
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="respiratory">Respiratory Rate (/min):</label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="respiratory" name="respiratory" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="air">O2 saturation room air (%):</label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="air" name="air" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="marital">Weight (kg): </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="weight" name="weight" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="height">Self-reported height (cm): </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="height" name="height" type="text"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="nationality">Temperature (°C): </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="temp" name="temp" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="adm_date">Mental status: </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="mental" name="adm_date" type="text"/>
+                                    
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="transfer">MUAC) (mm) </label>
+                                    <div class="col-sm-7">
+                                        <input class="form-control form-control-sm patient-input" value="" id="muac" name="muac" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="col-sm-3 col-form-label col-form-label-sm" for="adm_from">.</label>
+                                    <div class="col-sm-7">
+                                        .
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr style="width: 100%;"/>  
+                        <input type="hidden" name="clientid" id="clientid" value="">
+                        <input type="hidden" name="eid" id="eid" value="">
+                        <input type="hidden" name="efrom" id="efrom" value="">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script src="/static/app/cdn/js/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/app/cdn/js/flatpickr.min.js"></script>
+    <script src="/static/app/cdn/js/select2.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+
+            flatpickr(".datetimepicker", {
+                enableTime: false, 
+                dateFormat: "Y-m-d",
+                defaultDate: formattedDate,
+                disableMobile: true
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("caseForm"); // Replace with your form ID
+    const submitButton = document.getElementById("submitButton"); // Replace with your submit button ID
+    const save_cButton = document.getElementById("save_cButton");
+    const helpButton   = document.getElementById("helpButton");
+    const cancelButton = document.getElementById("cancelButton"); // Replace with your cancel button ID
+
+    
+    
+    //console.log("Form Data as JSON:", formDataJSON);
+
+    if (submitButton) {
+        submitButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            if (validateForm()) {
+                form.submit(); // Submit the form only if validation passes
+            } else {
+                alert("Please fill out all required fields correctly.");
+            }
+        });
+    }
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", function () {
+            window.location.href = "/cases"; // Replace with the correct URL
+        });
+    }
+
+    function validateForm() {
+        let isValid = true;
+        
+        return isValid;
+    }
+
+    function getFormDataAsJSON(formElement) {
+        const formData = new FormData(formElement);
+        const jsonObject = {};
+
+        formData.forEach((value, key) => {
+            jsonObject[key] = value;
+        });
+
+        return jsonObject;
+    }
+});
+
+    </script>
+</body>
+</html>
+
+
+{{ end }}
