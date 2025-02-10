@@ -156,8 +156,12 @@ func HandlerCasesList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 
 	fmt.Println("loading case list page")
 	//
-
+	facility := GetCurrentFacility(c, db, sl, store)
 	filter := ""
+	if facility > 0 {
+		filter = " site = " + strconv.Itoa(facility)
+	}
+
 	clients, err := models.Clients(c.Context(), db, filter)
 
 	if err != nil {

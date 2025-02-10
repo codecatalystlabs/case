@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"strconv"
 )
@@ -12,6 +13,38 @@ func (c *Client) SetAsExists() {
 
 func (c *User) SetAsExists() {
 	c._exists = true
+}
+
+func (c *UserRight) SetAsExists() {
+	c._exists = true
+}
+
+func (u *User) Update_NoPass(ctx context.Context, db DB) error {
+
+	// update with composite primary key
+	const sqlstr = `UPDATE public.users SET ` +
+		`user_name = $1, user_employee = $2 ` +
+		`WHERE user_id = $3`
+	// run
+	logf(sqlstr, u.UserName, u.UserEmployee, u.UserID)
+	if _, err := db.ExecContext(ctx, sqlstr, u.UserName, u.UserEmployee, u.UserID); err != nil {
+		return logerror(err)
+	}
+	return nil
+}
+
+func (u *User) Update_Pass(ctx context.Context, db DB) error {
+
+	// update with composite primary key
+	const sqlstr = `UPDATE public.users SET ` +
+		`user_pass = $1 ` +
+		`WHERE user_id = $2`
+	// run
+	logf(sqlstr, u.UserPass, u.UserID)
+	if _, err := db.ExecContext(ctx, sqlstr, u.UserPass, u.UserID); err != nil {
+		return logerror(err)
+	}
+	return nil
 }
 
 func GetFields(ctx context.Context, db DB, sql_statement string) (map[int][]string, error) {
@@ -131,4 +164,69 @@ func Users(ctx context.Context, db DB, flt string) ([]User, error) {
 	}
 
 	return users, nil
+}
+
+type Metumx struct {
+	MetaID          int            `json:"meta_id"`          // meta_id
+	MetaCategory    sql.NullInt64  `json:"meta_category"`    // meta_category
+	MetaName        sql.NullString `json:"meta_name"`        // meta_name
+	MetaOrder       sql.NullInt64  `json:"meta_order"`       // meta_order
+	MetaDescription sql.NullString `json:"meta_description"` // meta_description
+	MetaLink        sql.NullString `json:"meta_link"`        // meta_link
+	Scope           sql.NullInt64  `json:"function_scope"`   // meta_order
+	UserID          sql.NullInt64  `json:"user_id"`          // meta_order
+	// xo fields
+	_exists, _deleted bool
+}
+
+func Metums(ctx context.Context, db DB, flt string) ([]Metumx, error) {
+	// Base SQL query
+	sqlstr := `SELECT meta_id, meta_category, meta_name, meta_order, meta_description, meta_link, f.function_scope, f.user_id 
+	           FROM public.meta,
+				( 
+					Select user_id,function_scope , user_rights_function, 
+						user_rights_can_create+user_rights_can_view+user_rights_can_edit+user_rights_can_remove as func
+					From public.user_right
+					WHERE user_rights_can_create+user_rights_can_view+user_rights_can_edit+user_rights_can_remove > 0 
+				) f
+				Where f.user_rights_function = meta_id`
+
+	// Add filter condition if `flt` is not empty
+	var args []interface{}
+	if flt != "" {
+		sqlstr += " AND " + flt
+	}
+
+	// Log the query
+	logf(sqlstr)
+
+	// Execute query
+	rows, err := db.QueryContext(ctx, sqlstr, args...)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+
+	// Slice to hold clients
+	var metums []Metumx
+
+	// Iterate through rows
+	for rows.Next() {
+		var m Metumx
+		m._exists = true
+		if err := rows.Scan(
+			&m.MetaID, &m.MetaCategory, &m.MetaName, &m.MetaOrder, &m.MetaDescription, &m.MetaLink, &m.Scope, &m.UserID,
+		); err != nil {
+			return nil, logerror(err)
+		}
+
+		metums = append(metums, m)
+	}
+
+	// Check for iteration errors
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+
+	return metums, nil
 }

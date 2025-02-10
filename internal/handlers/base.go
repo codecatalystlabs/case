@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"case/internal/models"
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,6 +15,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gorilla/schema"
@@ -46,6 +50,7 @@ type TemplateData struct {
 	Items           []interface{}
 	Optionz         map[string]map[string]string
 	Flash           string
+	Menuz           string
 	IsAuthenticated bool
 	CSRFToken       string // Add a CSRFToken field.
 }
@@ -166,6 +171,21 @@ func GetUser(c *fiber.Ctx, sl *slog.Logger, store *session.Store) (int, string) 
 		fmt.Println("Username:", username)
 	}
 	return userID, username
+}
+
+func GetCurrentFacility(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store) int {
+	sqlstr := ` SELECT
+					facility
+				FROM public.users u, public.employee e
+				WHERE u.user_employee = e.employee_id AND u.user_id= $1`
+
+	userID, _ := GetUser(c, sl, store)
+
+	var facility int
+	if err := db.QueryRowContext(c.Context(), sqlstr, userID).Scan(&facility); err != nil {
+		return 0
+	}
+	return facility
 }
 
 func HumanDate(t time.Time) string {
@@ -531,4 +551,34 @@ func ParseNullTime(value string) sql.NullTime {
 		return sql.NullTime{Valid: false}
 	}
 	return sql.NullTime{Time: t, Valid: true}
+}
+
+// ConvertFiberToGin converts a Fiber context to a Gin context
+func ConvertFiberToGin(fctx *fiber.Ctx) (*gin.Context, error) {
+	// Create a new HTTP request using Fiber's request data
+	req := fctx.Request()
+
+	// Convert Fiber request to standard *http.Request
+	httpReq, err := http.NewRequest(
+		string(req.Header.Method()),
+		fctx.OriginalURL(),
+		bytes.NewReader(req.Body()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Copy headers from Fiber to the new request
+	req.Header.VisitAll(func(key, value []byte) {
+		httpReq.Header.Set(string(key), string(value))
+	})
+
+	// Create a new Gin response recorder
+	w := httptest.NewRecorder()
+
+	// Create a new Gin context
+	ginCtx, _ := gin.CreateTestContext(w)
+	ginCtx.Request = httpReq
+
+	return ginCtx, nil
 }
