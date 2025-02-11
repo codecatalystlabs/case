@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strconv"
 )
@@ -17,6 +18,109 @@ func (c *User) SetAsExists() {
 
 func (c *UserRight) SetAsExists() {
 	c._exists = true
+}
+
+func (c *Encounter) SetAsExists() {
+	c._exists = true
+}
+
+func (c *Clinical) SetAsExists() {
+	c._exists = true
+}
+
+func (c *Vital) SetAsExists() {
+	c._exists = true
+}
+
+type ClientEncounter struct {
+	EncounterID   int
+	EncounterType string
+	EmployeeFname string
+	EmployeeLname string
+	EncounterDate string
+	EncounterTime string
+	ClientID      int
+}
+
+func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
+	// query
+	sqlstr := ` SELECT 
+					encounter_id, meta_name,employee_fname, employee_lname, encounter_date, encounter_time, client_id
+				FROM encounter 
+				LEFT JOIN meta ON meta.meta_id = encounter.encounter_type
+				LEFT JOIN employee on employee.employee_id = encounter.managed_by `
+	var args []interface{}
+	if flt != "" {
+		sqlstr += " WHERE " + flt
+	}
+
+	fmt.Println(sqlstr)
+
+	// Log the query
+	logf(sqlstr)
+
+	// Execute query
+	rows, err := db.QueryContext(ctx, sqlstr, args...)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+
+	// Slice to hold clients
+	var clientencounters []ClientEncounter
+
+	// Iterate through rows
+	for rows.Next() {
+		var e ClientEncounter
+		if err := rows.Scan(
+			&e.EncounterID, &e.EncounterType, &e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.EncounterTime, &e.ClientID,
+		); err != nil {
+			return nil, logerror(err)
+		}
+		clientencounters = append(clientencounters, e)
+	}
+
+	// Check for iteration errors
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+
+	return clientencounters, nil
+
+}
+
+func ClinicalByEncounterID(ctx context.Context, db DB, encounterID int) (*Clinical, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`clinical_id, encounter_id, fever, fatigue, weakness, malaise, myalgia, anorexia, sore_throat, headache, nausea, chest_pain, joint_pain, hiccups, cough, difficulty_breathing, difficulty_swallowing, abdominal_pain, diarrhoea, vomiting, irritability, dysphagia, unusual_bleeding, dehydration, shock, anuria, disorientation, agitation, seizure, meningitis, confusion, coma, bacteraemia, hyperglycemia, hypoglycemia, other_complications, aza_complications_specif, pharyngeal_erythema, pharyngeal_exudate, conjunctival_injection, oedema_face, tender_abdomen, sunken_eyes, tenting_skin, palpable_liver, palpable_spleen, jaundice, enlarged_lymph_nodes, lower_extremity_oedema, bleeding, bleeding_nose, bleeding_mouth, bleeding_vagina, bleeding_rectum, bleeding_sputum, bleeding_urine, bleeding_iv_site, bleeding_other, bleeding_other_specif ` +
+		`FROM public.clinical ` +
+		`WHERE encounter_id = $1`
+	// run
+	logf(sqlstr, encounterID)
+	c := Clinical{
+		_exists: true,
+	}
+	if err := db.QueryRowContext(ctx, sqlstr, encounterID).Scan(&c.ClinicalID, &c.EncounterID, &c.Fever, &c.Fatigue, &c.Weakness, &c.Malaise, &c.Myalgia, &c.Anorexia, &c.SoreThroat, &c.Headache, &c.Nausea, &c.ChestPain, &c.JointPain, &c.Hiccups, &c.Cough, &c.DifficultyBreathing, &c.DifficultySwallowing, &c.AbdominalPain, &c.Diarrhoea, &c.Vomiting, &c.Irritability, &c.Dysphagia, &c.UnusualBleeding, &c.Dehydration, &c.Shock, &c.Anuria, &c.Disorientation, &c.Agitation, &c.Seizure, &c.Meningitis, &c.Confusion, &c.Coma, &c.Bacteraemia, &c.Hyperglycemia, &c.Hypoglycemia, &c.OtherComplications, &c.AzaComplicationsSpecif, &c.PharyngealErythema, &c.PharyngealExudate, &c.ConjunctivalInjection, &c.OedemaFace, &c.TenderAbdomen, &c.SunkenEyes, &c.TentingSkin, &c.PalpableLiver, &c.PalpableSpleen, &c.Jaundice, &c.EnlargedLymphNodes, &c.LowerExtremityOedema, &c.Bleeding, &c.BleedingNose, &c.BleedingMouth, &c.BleedingVagina, &c.BleedingRectum, &c.BleedingSputum, &c.BleedingUrine, &c.BleedingIvSite, &c.BleedingOther, &c.BleedingOtherSpecif); err != nil {
+		return nil, logerror(err)
+	}
+	return &c, nil
+}
+
+func VitalByEncounterID(ctx context.Context, db DB, encounterID int) (*Vital, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`vitals_id, encounter_id, heart_rate, bp_systolic, bp_diastolic, capillary_refill, respiratory_rate, saturation, weight, height, temperature, lowest_consciousness, mental_status, muac, bleeding, shock, meningitis, confusion, seizure, coma, bacteraemia, hyperglycemia, hypoglycemia, other ` +
+		`FROM public.vitals ` +
+		`WHERE encounter_id = $1`
+	// run
+	logf(sqlstr, encounterID)
+	v := Vital{
+		_exists: true,
+	}
+	if err := db.QueryRowContext(ctx, sqlstr, encounterID).Scan(&v.VitalsID, &v.EncounterID, &v.HeartRate, &v.BpSystolic, &v.BpDiastolic, &v.CapillaryRefill, &v.RespiratoryRate, &v.Saturation, &v.Weight, &v.Height, &v.Temperature, &v.LowestConsciousness, &v.MentalStatus, &v.Muac, &v.Bleeding, &v.Shock, &v.Meningitis, &v.Confusion, &v.Seizure, &v.Coma, &v.Bacteraemia, &v.Hyperglycemia, &v.Hypoglycemia, &v.Other); err != nil {
+		return nil, logerror(err)
+	}
+	return &v, nil
 }
 
 func (u *User) Update_NoPass(ctx context.Context, db DB) error {
