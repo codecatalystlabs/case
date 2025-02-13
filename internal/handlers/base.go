@@ -75,6 +75,7 @@ var functions = template.FuncMap{
 	"seq":                  Seq,
 	"GetOptionField":       GetOptionField,
 	"GetDBOptions":         GetDBOptions,
+	"GetDBLabel":           GetDBLabel,
 }
 
 func GetOptionField(table, field, labs, defaultString string, defaultvalue, whole int64) string {
@@ -219,6 +220,72 @@ func GetOptionField(table, field, labs, defaultString string, defaultvalue, whol
 					<option value="1" ` + zaDefa1 + `>Yes</option>
 					<option value="2" ` + zaDefa2 + `>No</option>
 					<option value="3" ` + zaDefa3 + `>Unknown</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "e_rdt" {
+		if defaultString == "Not Done" {
+			zaDefa1 = "selected"
+		}
+
+		if defaultString == "Oraquick" {
+			zaDefa2 = "selected"
+		}
+
+		if defaultString == "Others" {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="Not Done" ` + zaDefa1 + `>Not Done</option>
+					<option value="Oraquick" ` + zaDefa2 + `>Oraquick</option>
+					<option value="Others" ` + zaDefa3 + `>Others</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "blood" {
+		if defaultString == "ND" {
+			zaDefa1 = "selected"
+		}
+
+		if defaultString == "Arterial" {
+			zaDefa2 = "selected"
+		}
+
+		if defaultString == "Others" {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="ND" ` + zaDefa1 + `>ND</option>
+					<option value="Arterial" ` + zaDefa2 + `>Arterial</option>
+					<option value="Venous" ` + zaDefa3 + `>Venous</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "e_pcr" {
+		if defaultString == "Not Done" {
+			zaDefa1 = "selected"
+		}
+
+		if defaultString == "GeneXpert" {
+			zaDefa2 = "selected"
+		}
+
+		if defaultString == "Others" {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="Not Done" ` + zaDefa1 + `>Not Done</option>
+					<option value="GeneXpert" ` + zaDefa2 + `>GeneXpert</option>
+					<option value="Others" ` + zaDefa3 + `>Others</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
@@ -507,6 +574,7 @@ func Get_Client_Optionz() (opt map[string]map[string]string) {
 	opt = make(map[string]map[string]string)
 	// Add data to the map of maps
 	opt["sex"] = map[string]string{"": " -- ", "1": "Male", "2": "Female"}
+	opt["sex2"] = map[string]string{"": " -- ", "Male": "Male", "Female": "Female"}
 	opt["occup"] = map[string]string{"": " -- ", "1": "Healthcare worker", "2": "Non-Healthcare worker"}
 	opt["yn"] = map[string]string{"": " -- ", "1": "Yes", "2": "No"}
 	opt["yn_extra"] = map[string]string{"": " -- ", "1": "Yes", "2": "No", "3": "Unknown"}
@@ -540,6 +608,9 @@ func GetDBOptions(table, cat, deflt, fld_name, fld_lab string, deflt_int int64) 
 
 	case "function":
 		sql = "SELECT function_id as code, function_name as lab FROM public.function"
+	case "site":
+		sql = "SELECT facility_id as code, facility_name as lab FROM public.facility"
+	case "test":
 	case "meta":
 		sql = "Select meta_id as code, meta_name as lab from meta, meta_category WHERE meta.meta_category=meta_category.meta_category_id AND meta_category_name='" + cat + "'"
 	}
@@ -588,6 +659,51 @@ func GetClientOptionLabel(arrayKey, mapKey string) string {
 		}
 	}
 	return "" // Return an empty string if the keys are not found
+}
+
+func GetDBLabel(table, namesFld, indexFld string, indexID int64) string {
+	// Use parameterized query to prevent SQL injection
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", namesFld, table, indexFld)
+	var label string
+	label = ""
+	err := dbG.QueryRowContext(CtxG.Context(), query, indexID).Scan(&label)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No rows found for ID:", indexID)
+			return ""
+		}
+		fmt.Println("Error executing query:", err)
+		return ""
+	}
+	return label
+}
+
+func GetDBInt(table, namesFld, indexFld, whereString string, indexID int64) int64 {
+	// Use parameterized query to prevent SQL injection
+	query := ""
+	var label int
+	label = 0
+
+	var err error
+
+	if whereString == "" {
+		query = fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", namesFld, table, indexFld)
+		err = dbG.QueryRowContext(CtxG.Context(), query, indexID).Scan(&label)
+	} else {
+		query = fmt.Sprintf("SELECT %s FROM %s WHERE %s", namesFld, table, whereString)
+		err = dbG.QueryRowContext(CtxG.Context(), query).Scan(&label)
+	}
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("No rows found for ID:", indexID)
+			return 0
+		}
+		fmt.Println("Error executing query:", err)
+		return 0
+	}
+	return int64(label)
+
 }
 
 func ParseNullString(value string) sql.NullString {

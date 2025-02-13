@@ -25,6 +25,8 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 	appGroup.Use(AuthRequired(store)) // Apply middleware for protected routes
 	{
 		println("auth worked")
+		// vars
+
 		// Home route
 		appGroup.Get("/", func(c *fiber.Ctx) error { return handlers.HandlerHome(c, db, sl, store, config) })
 		println("auth done")
@@ -35,9 +37,11 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 		sym := api.Group("/sym")
 		mob := api.Group("/mob")
 		rus := api.Group("/rush")
-		lab := api.Group("/lab")    // Employees
-		usr := app.Group("/users")  // users
-		hfs := app.Group("/secure") // Health facilities
+		lab := api.Group("/lab")
+
+		emp := app.Group("/employees") // Employees
+		usr := app.Group("/users")     // users
+		hfs := app.Group("/secure")    // Health facilities
 		cse := app.Group("/cases")
 
 		enc := app.Group("/encounter")
@@ -51,6 +55,8 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 		RouteSymptoms(sym, db, sl, config)
 		RouteRush(rus, db, sl, config)
 		RouteLab(lab, db, sl, config)
+
+		RouteEmployees(emp, db, sl, config)
 
 		RouteLab(enc, db, sl, config)
 		RouteLab(dis, db, sl, config)
@@ -106,6 +112,14 @@ func RouteUsers(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Con
 	v.Post("/filter", func(c *fiber.Ctx) error { return handlers.HandlerUserList(c, db, sl, store, config) })
 	v.Get("/list", func(c *fiber.Ctx) error { return handlers.HandlerUserList(c, db, sl, store, config) })
 	v.Get("/", func(c *fiber.Ctx) error { return handlers.HandlerUserList(c, db, sl, store, config) })
+}
+
+func RouteEmployees(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {
+	v.Get("/new/:i", func(c *fiber.Ctx) error { return handlers.HandlerEmployeeForm(c, db, sl, store, config) })
+	v.Post("/save", func(c *fiber.Ctx) error { return handlers.HandlerEmployeeSubmit(c, db, sl, store, config) })
+	v.Post("/filter", func(c *fiber.Ctx) error { return handlers.HandlerEmployeeList(c, db, sl, store, config) })
+	v.Get("/list", func(c *fiber.Ctx) error { return handlers.HandlerEmployeeList(c, db, sl, store, config) })
+	v.Get("/", func(c *fiber.Ctx) error { return handlers.HandlerEmployeeList(c, db, sl, store, config) })
 }
 
 func RouteCases(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {

@@ -124,10 +124,7 @@
                             <a class="nav-link" id="encounter-tab" data-toggle="tab" href="#encounter" role="tab" aria-controls="encounter" aria-selected="false">Encounters</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="labs-tab" data-toggle="tab" href="#labs" role="tab" aria-controls="labs" aria-selected="false">Labs</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="treat-tab" data-toggle="tab" href="#treat" role="tab" aria-controls="treat" aria-selected="false">Treatment</a>
+                            <a class="nav-link" id="labs-tab" data-toggle="tab" href="#labs" role="tab" aria-controls="labs" aria-selected="false">Status</a>
                         </li>
                     </ul>
                     <div class="tab-content" id="myTabContent">
@@ -655,7 +652,39 @@
                         </div>
 
                         <div class="tab-pane fade" id="labs" role="tabpanel" aria-labelledby="labs-tab">
-                            <p>Labs</p>
+                            <p>Status</p>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Entered by</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                        <td><select></select></td>
+                                        <td><input type="date"></td>
+                                        <td><select></select></td>
+                                        <td><input type="text"></td>
+                                        <td><button class="btn btn-primary btn-sm">Save</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><button class="btn btn-primary btn-sm">*New</button></td>
+                                        <td colspan="5"></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6">No Labs</td>
+                                    </tr>
+                                </tfoot>
+                                
+                            </table>
                         </div>
 
                         <div class="tab-pane fade" id="treat" role="tabpanel" aria-labelledby="treat-tab">

@@ -120,7 +120,7 @@
                             <div class="row">
                                 <label class="col-sm-5 col-form-label col-form-label-sm" for="encounter_date">Encounter Date</label>
                                 <div class="col-sm-5">
-                                    <input class="form-control form-control-sm patient-input datetimepicker" value="{{.Form.EncounterDate.String}}" id="encounter_date" name="encounter_date" type="text" placeholder="yyyy-mm-dd" data-options='{"disableMobile":true,"dateFormat":"Y-m-d"}' required/>
+                                    <input class="form-control form-control-sm patient-input datetimepicker" value="{{.Form.EncounterDate.String}}" id="encounter_date" name="encounter_date" type="text" placeholder="yyyy-mm-dd" data-options='{"disableMobile":true,"dateFormat":"Y-m-d"}' />
                                 </div>
                             </div>
                         </div>
@@ -194,13 +194,13 @@
                                     <div class="row">
                                         <label class="col-sm-6 col-form-label col-form-label-sm" for="heart_rate">Heart rate (bpm): <span class="text-danger">*</span></label>
                                         <div class="col-sm-4">
-                                            <input class="form-control form-control-sm patient-input" value="{{ .FormChild2.HeartRate.Float64 }}" id="heart_rate" name="heart_rate" type="text" required/>
+                                            <input class="form-control form-control-sm patient-input" value="{{ .FormChild2.HeartRate.Float64 }}" id="heart_rate" name="heart_rate" type="text" />
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-6 col-form-label col-form-label-sm" for="bp_systolic">BP (systolic) (mmHg): </label>
                                         <div class="col-sm-4">
-                                            <input class="form-control form-control-sm patient-input" value="{{ .FormChild2.BpSystolic.Float64 }}" id="bp_systolic" name="bp_systolic" type="text" required/>
+                                            <input class="form-control form-control-sm patient-input" value="{{ .FormChild2.BpSystolic.Float64 }}" id="bp_systolic" name="bp_systolic" type="text" />
                                         </div>
                                     </div>
                                     <div class="row">
@@ -212,7 +212,7 @@
                                     <div class="row">
                                         <label class="col-sm-6 col-form-label col-form-label-sm" for="capillary_refill">Capillary refill > 3 sec? </label>
                                         <div class="col-sm-4">
-                                            <select class="form-control-sm patient-input form-select"  name="capillary_refill" id="capillary_refill" aria-label="Capillary refill" required>
+                                            <select class="form-control-sm patient-input form-select"  name="capillary_refill" id="capillary_refill" aria-label="Capillary refill" >
                                                 {{ range $key, $value := index .Optionz "yn" }}  
                                                     <option value="{{ $key }}">{{ $value }}</option>
                                                 {{ end }}
@@ -261,7 +261,7 @@
                                     <div class="row">
                                         <label class="col-sm-6 col-form-label col-form-label-sm" for="mental_status">Mental status: </label> 
                                         <div class="col-sm-4">
-                                            <select class="form-control-sm patient-input form-select"  name="mental_status" id="mental_status" aria-label="Mental status" required>
+                                            <select class="form-control-sm patient-input form-select"  name="mental_status" id="mental_status" aria-label="Mental status" >
                                                 {{ range $key, $value := index .Optionz "mental" }}  
                                                     <option value="{{ $key }}">{{ $value }}</option>
                                                 {{ end }}
@@ -629,13 +629,25 @@
                                     <td colspan="3">Result</td> 
                                 </tr>
                                 <tr>
-                                    <td colspan="2">Ebola RDT: </td> 
-                                    <td></td>
+                                    <td colspan="2">
+                                        <div class="row">
+                                            <label class="col-sm-5 col-form-label col-form-label-sm">Ebola RDT: </label>
+                                            <div class="col-sm-5">{{ GetOptionField "e_rdt" "bleeding" "Bleeding" "" 0 1 }}</div>
+                                        </div>
+                                        Other specify: <input type="text" name="" id=""  value="">
+                                    </td> 
+                                    <td><input size="5" type="date"></td>
                                     <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div> </td>
                                 </tr>
                                 <tr>
-                                    <td rowspan="2" colspan="2">Ebola PCR (admission</td> 
-                                    <td rowspan="2"></td>
+                                    <td rowspan="2" colspan="2">
+                                        <div class="row">
+                                            <label class="col-sm-5 col-form-label col-form-label-sm">Ebola PCR:</label>
+                                            <div class="col-sm-5">{{ GetOptionField "e_pcr" "bleeding" "Bleeding" "" 0 1 }}</div>
+                                        </div>
+                                        Other specify: <input type="text" name="" id="" value="">
+                                    </td> 
+                                    <td rowspan="2" ><input size="5" type="date"></td>
                                     <td>GP</td>
                                     <td>NP</td>
                                     <td></td>
@@ -643,22 +655,22 @@
                                 <tr>
                                     <td>
                                         <div class="row"> <div class="col-sm-6">{{ GetOptionField "po" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div>
-                                        <br /> CT: <input size="5" type="text">
+                                        <br /> CT: <input size="5" type="text" name="" id="" value="">
                                     </td>
                                     <td>
                                         <div class="row"> <div class="col-sm-6">{{ GetOptionField "po" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div>
-                                        <br /> CT: <input size="5" type="text">
+                                        <br /> CT: <input size="5" type="text" name="" id="" value="">
                                     </td>
-                                    <td><input type="checkbox" value="1">indeterminate</td>
+                                    <td><input type="checkbox" value="1" name="" id="" >indeterminate</td>
                                 </tr>
                                 <tr>
                                     <td colspan="2">Malaria RDT</td> 
-                                    <td></td>
+                                    <td><input size="5" type="date" name="" id="" value=""></td>
                                     <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div> </td> 
                                 </tr>
                                 <tr>
                                     <td colspan="2">Blood culture</td> 
-                                    <td></td>
+                                    <td><input size="5" type="date" name="" id="" value=""></td>
                                     <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div> </td> 
                                 </tr>
                                 <tr>
@@ -667,7 +679,7 @@
                                             <label class="col-sm-4 col-form-label col-form-label-sm" >Did patient test positive for any other infection?</label> 
                                             <div class="col-sm-1">{{ GetOptionField "yn" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div> 
                                             <label class="col-sm-4 col-form-label col-form-label-sm" >If Yes, specify</label> 
-                                            <div class="col-sm-3"><input type="text"></div>
+                                            <div class="col-sm-3"><input type="text" name="" id="" value=""></div>
                                         </div>
                                     </td> 
                                 </tr>
@@ -677,20 +689,27 @@
                                 <tr>
                                     <td colspan="2">Haemoglobinuria</td> 
                                     <td>{{ GetOptionField "pos" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }} </td>
-                                    <td colspan="2">Blood Gas</td> 
+                                    <td>Blood Gas</td> 
+                                    <td>{{ GetOptionField "blood" "bleeding" "Bleeding" "" 0 1 }} </td>
                                     <td></td> 
                                     
                                 </tr>
                                 <tr>
                                     <td colspan="2">Proteinuria</td> 
                                     <td>{{ GetOptionField "pos" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }} </td>
-                                    <td colspan="3">Results: pH	, pCO2	, PaO2 	HCO3	</td> 
+                                    <td colspan="3">
+                                        Results: pH	<input type="text" size="5" name="" id="" value="">, 
+                                        pCO2	<input type="text" size="5" name="" id="" value="">, 
+                                        PaO2 	<input type="text" size="5" name="" id="" value="">,
+                                        HCO3<input type="text" size="5" name="" id="" value="">
+                                    </td> 
                                     
                                 </tr>
                                 <tr>
                                     <td colspan="2">Hematuria</td> 
                                     <td>{{ GetOptionField "pos" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }} </td>
-                                    <td colspan="2">Oxygen therapy at time of blood gas (L/min)</td> 
+                                    <td>Oxygen therapy at time of blood gas (L/min)</td> 
+                                    <td><input type="text" size="5" name="" id="" value=""></td>
                                     <td></td> 
                                     
                                 </tr>
@@ -707,67 +726,67 @@
                                 </tr>
                                 <tr>
                                     <td>ALT/SGPT (U/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="">DN</td>
                                     <td>Glucose (mmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>AST/SGO (U/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>Lactate (mmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Creatinine (µmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>Haemoglobin (g/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Potassium (mmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>Total bilirubin (µmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Urea (mmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>WBC count (x109/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Creatinine kinase (U/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>Platelets (x109/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Calcium (mmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>PT</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Sodium (mmol/L)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                     <td>aPTT (seconds)</td>
-                                    <td></td>
-                                    <td><input type="checkbox" value="1">DN</td>
+                                    <td><input size="5" type="text" name="" id="" value=""></td>
+                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
                                 </tr>
                             </table>
                         </div>
