@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"strconv"
 )
@@ -32,6 +31,18 @@ func (c *Vital) SetAsExists() {
 	c._exists = true
 }
 
+func (c *Lab) SetAsExists() {
+	c._exists = true
+}
+
+func (c *Employee) SetAsExists() {
+	c._exists = true
+}
+
+func (c *Status) SetAsExists() {
+	c._exists = true
+}
+
 type ClientEncounter struct {
 	EncounterID   int
 	EncounterType string
@@ -40,6 +51,102 @@ type ClientEncounter struct {
 	EncounterDate string
 	EncounterTime string
 	ClientID      int
+}
+
+type Statuz struct {
+	ZeStatus Status
+	FName    sql.NullString
+	LName    sql.NullString
+}
+
+func Statusez(ctx context.Context, db DB, flt string) ([]Statuz, error) {
+	// query
+	sqlstr := ` SELECT 
+					s.status_id, s.client_id, s.status_date, s.status, s.status_notes, s.updated_by, s.updated_on,
+					e.employee_fname, e.employee_lname
+				FROM status s left join employee e on s.updated_by = e.employee_id `
+
+	var args []interface{}
+	if flt != "" {
+		sqlstr += " WHERE " + flt
+	}
+
+	// Log the query
+	logf(sqlstr)
+
+	// Execute query
+	rows, err := db.QueryContext(ctx, sqlstr, args...)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+
+	// Slice to hold clients
+	var statuses []Statuz
+
+	// Iterate through rows
+	for rows.Next() {
+		var s Statuz
+		if err := rows.Scan(
+			&s.ZeStatus.StatusID, &s.ZeStatus.ClientID, &s.ZeStatus.StatusDate, &s.ZeStatus.Status, &s.ZeStatus.StatusNotes, &s.ZeStatus.UpdatedBy, &s.ZeStatus.UpdatedOn,
+			&s.FName, &s.LName,
+		); err != nil {
+			return nil, logerror(err)
+		}
+		statuses = append(statuses, s)
+	}
+
+	// Check for iteration errors
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+
+	return statuses, nil
+
+}
+
+func Statuses(ctx context.Context, db DB, flt string) ([]Status, error) {
+	// query
+	sqlstr := ` SELECT 
+					status_id, client_id, status_date, status, status_notes, updated_by, updated_on
+				FROM status `
+
+	var args []interface{}
+	if flt != "" {
+		sqlstr += " WHERE " + flt
+	}
+
+	// Log the query
+	logf(sqlstr)
+
+	// Execute query
+	rows, err := db.QueryContext(ctx, sqlstr, args...)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+
+	// Slice to hold clients
+	var statuses []Status
+
+	// Iterate through rows
+	for rows.Next() {
+		var s Status
+		if err := rows.Scan(
+			&s.StatusID, &s.ClientID, &s.StatusDate, &s.Status, &s.StatusNotes, &s.UpdatedBy, &s.UpdatedOn,
+		); err != nil {
+			return nil, logerror(err)
+		}
+		statuses = append(statuses, s)
+	}
+
+	// Check for iteration errors
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+
+	return statuses, nil
+
 }
 
 func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
@@ -53,8 +160,6 @@ func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter
 	if flt != "" {
 		sqlstr += " WHERE " + flt
 	}
-
-	fmt.Println(sqlstr)
 
 	// Log the query
 	logf(sqlstr)
@@ -121,6 +226,23 @@ func VitalByEncounterID(ctx context.Context, db DB, encounterID int) (*Vital, er
 		return nil, logerror(err)
 	}
 	return &v, nil
+}
+
+func LabByEncounterID(ctx context.Context, db DB, encounterID int) (*Lab, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`lab_id, encounter_id, specimen, sample_blood, sample_urine, sample_swab, sample_aza, ebola_rdt, ebola_rdt_date, ebola_rdt_results, ebola_pcr, ebola_pcr_aza, ebola_pcr_date, ebola_pcr_gp, ebola_pcr_gp_ct, ebola_pcr_np, ebola_pcr_np_ct, ebola_pcr_indeterminate, malaria_rdt_date, malaria_rdt_result, blood_culture_date, blood_culture_result, test_pos_infection, test_pos_infection_aza, haemoglobinuria, proteinuria, hematuria, blood_gas, ph, pco2, pao2, hco3, oxygen_therapy, alt_sgpt, ast_sgo, creatinine, potassium, urea, creatinine_kinase, calcium, sodium, alt_sgpt_nd, ast_sgo_nd, creatinine_nd, potassium_nd, urea_nd, creatinine_kinase_nd, calcium_nd, sodium_nd, glucose, lactate, haemoglobin, total_bilirubin, wbc_count, platelets, pt, aptt, glucose_nd, lactate_nd, haemoglobin_nd, total_bilirubin_nd, wbc_count_nd, platelets_nd, pt_nd, aptt_nd, ebola_rdt_aza ` +
+		`FROM public.lab ` +
+		`WHERE encounter_id = $1`
+	// run
+	logf(sqlstr, encounterID)
+	l := Lab{
+		_exists: true,
+	}
+	if err := db.QueryRowContext(ctx, sqlstr, encounterID).Scan(&l.LabID, &l.EncounterID, &l.Specimen, &l.SampleBlood, &l.SampleUrine, &l.SampleSwab, &l.SampleAza, &l.EbolaRdt, &l.EbolaRdtDate, &l.EbolaRdtResults, &l.EbolaPcr, &l.EbolaPcrAza, &l.EbolaPcrDate, &l.EbolaPcrGp, &l.EbolaPcrGpCt, &l.EbolaPcrNp, &l.EbolaPcrNpCt, &l.EbolaPcrIndeterminate, &l.MalariaRdtDate, &l.MalariaRdtResult, &l.BloodCultureDate, &l.BloodCultureResult, &l.TestPosInfection, &l.TestPosInfectionAza, &l.Haemoglobinuria, &l.Proteinuria, &l.Hematuria, &l.BloodGas, &l.Ph, &l.Pco2, &l.Pao2, &l.Hco3, &l.OxygenTherapy, &l.AltSgpt, &l.AstSgo, &l.Creatinine, &l.Potassium, &l.Urea, &l.CreatinineKinase, &l.Calcium, &l.Sodium, &l.AltSgptNd, &l.AstSgoNd, &l.CreatinineNd, &l.PotassiumNd, &l.UreaNd, &l.CreatinineKinaseNd, &l.CalciumNd, &l.SodiumNd, &l.Glucose, &l.Lactate, &l.Haemoglobin, &l.TotalBilirubin, &l.WbcCount, &l.Platelets, &l.Pt, &l.Aptt, &l.GlucoseNd, &l.LactateNd, &l.HaemoglobinNd, &l.TotalBilirubinNd, &l.WbcCountNd, &l.PlateletsNd, &l.PtNd, &l.ApttNd, &l.EbolaRdtAza); err != nil {
+		return nil, logerror(err)
+	}
+	return &l, nil
 }
 
 func (u *User) Update_NoPass(ctx context.Context, db DB) error {

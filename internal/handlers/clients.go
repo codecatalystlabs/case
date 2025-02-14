@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -46,11 +47,17 @@ func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 		fmt.Println("something something: ", err.Error())
 	}
 
+	st, err := models.Statuses(c.Context(), db, "client_id="+strconv.Itoa(id))
+	if err != nil {
+		fmt.Println("something something: ", err.Error())
+	}
+
 	data.User = userName
 	data.Role = role
 	data.Optionz = Get_Client_Optionz()
 	data.Form = client
 	data.FormChild1 = cE
+	data.FormChild2 = st
 
 	fmt.Println("loading case form page")
 	return GenerateHTML(c, data, "form_patients")
@@ -128,10 +135,6 @@ func HandlerCasesSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 		//client.UUID.String = appID
 
 	}
-	fmt.Println("Created 0")
-	//return
-	fmt.Println(client)
-	fmt.Println("Created 1")
 
 	if client.ID == 0 {
 		err := client.Insert(c.Context(), db)
@@ -166,7 +169,7 @@ func HandlerCasesList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	//
 	facility := GetCurrentFacility(c, db, sl, store)
 	scope := GetDBInt("user_right", "function_scope", "", "user_id= "+strconv.Itoa(userID), 0)
-	fmt.Println("Scope = ", scope)
+
 	filter := ""
 	if scope == 15 {
 		filter = ""
@@ -215,6 +218,7 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 	var encounter = &models.Encounter{}
 	var clinical = &models.Clinical{}
 	var vital = &models.Vital{}
+	var lab = &models.Lab{}
 
 	encounter.ClientID.Valid = true
 	encounter.ClientID.Int64 = 0
@@ -224,6 +228,9 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 
 	vital.EncounterID.Valid = true
 	vital.EncounterID.Int64 = 0
+
+	lab.EncounterID.Valid = true
+	lab.EncounterID.Int64 = 0
 
 	if id > 0 {
 		client, _ = models.ClientByID(c.Context(), db, id)
@@ -235,13 +242,25 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 		encounter, _ = models.EncounterByEncounterID(c.Context(), db, jd)
 		clinical.EncounterID.Int64 = int64(encounter.EncounterID)
 		vital.EncounterID.Int64 = int64(encounter.EncounterID)
+		lab.EncounterID.Int64 = int64(encounter.EncounterID)
 
-		clinical, _ = models.ClinicalByEncounterID(c.Context(), db, jd)
-		vital, _ = models.VitalByEncounterID(c.Context(), db, jd)
+		cl, er := models.ClinicalByEncounterID(c.Context(), db, jd)
+		if er == nil {
+			clinical = cl
+		}
+		vt, er := models.VitalByEncounterID(c.Context(), db, jd)
+		if er == nil {
+			vital = vt
+		}
+
+		l, er := models.LabByEncounterID(c.Context(), db, jd)
+		if er == nil {
+			lab = l
+		}
 
 		// add logic to load child forms with encounter ID
 	}
-	fmt.Println("loading 3")
+
 	data := NewTemplateData(c, store)
 
 	data.User = userName
@@ -249,8 +268,10 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 	data.Optionz = Get_Client_Optionz()
 	data.Form = encounter
 	data.FormRef = client
+
 	data.FormChild1 = clinical
 	data.FormChild2 = vital
+	data.FormChild3 = lab
 
 	fmt.Println("loading case encounter form page")
 	return GenerateHTML(c, data, "form_encounters")
@@ -420,6 +441,92 @@ func HandlerCaseEncounterSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store
 		}
 	}
 
+	lab_id, er := strconv.Atoi(c.FormValue("lab_id"))
+	if er != nil {
+		clinical_id = 0
+	}
+
+	lab := models.Lab{
+		LabID:                 vitals_id,
+		EncounterID:           sql.NullInt64{Int64: int64(encounter.EncounterID), Valid: true},
+		Specimen:              ParseNullInt(c.FormValue("specimen")),
+		SampleBlood:           ParseNullInt(c.FormValue("sample_blood")),
+		SampleUrine:           ParseNullInt(c.FormValue("sample_urine")),
+		SampleSwab:            ParseNullInt(c.FormValue("sample_swab")),
+		SampleAza:             ParseNullString(c.FormValue("sample_aza")),
+		EbolaRdt:              ParseNullInt(c.FormValue("ebola_rdt")),
+		EbolaRdtDate:          ParseNullString(c.FormValue("ebola_rdt_date")),
+		EbolaRdtResults:       ParseNullInt(c.FormValue("ebola_rdt_results")),
+		EbolaPcr:              ParseNullInt(c.FormValue("ebola_pcr")),
+		EbolaPcrAza:           ParseNullString(c.FormValue("ebola_pcr_aza")),
+		EbolaPcrDate:          ParseNullString(c.FormValue("ebola_pcr_date")),
+		EbolaPcrGp:            ParseNullInt(c.FormValue("ebola_pcr_gp")),
+		EbolaPcrGpCt:          ParseNullFloat(c.FormValue("ebola_pcr_gp_ct")),
+		EbolaPcrNp:            ParseNullInt(c.FormValue("ebola_pcr_np")),
+		EbolaPcrNpCt:          ParseNullFloat(c.FormValue("ebola_pcr_np_ct")),
+		EbolaPcrIndeterminate: ParseNullInt(c.FormValue("ebola_pcr_indeterminate")),
+		MalariaRdtDate:        ParseNullString(c.FormValue("malaria_rdt_date")),
+		MalariaRdtResult:      ParseNullInt(c.FormValue("malaria_rdt_result")),
+		BloodCultureDate:      ParseNullString(c.FormValue("blood_culture_date")),
+		BloodCultureResult:    ParseNullInt(c.FormValue("blood_culture_result")),
+		TestPosInfection:      ParseNullInt(c.FormValue("test_pos_infection")),
+		TestPosInfectionAza:   ParseNullString(c.FormValue("test_pos_infection_aza")),
+		Haemoglobinuria:       ParseNullInt(c.FormValue("haemoglobinuria")),
+		Proteinuria:           ParseNullInt(c.FormValue("proteinuria")),
+		Hematuria:             ParseNullInt(c.FormValue("hematuria")),
+		BloodGas:              ParseNullInt(c.FormValue("blood_gas")),
+		Ph:                    ParseNullFloat(c.FormValue("ph")),
+		Pco2:                  ParseNullFloat(c.FormValue("pco2")),
+		Pao2:                  ParseNullFloat(c.FormValue("pao2")),
+		Hco3:                  ParseNullFloat(c.FormValue("hco3")),
+		OxygenTherapy:         ParseNullFloat(c.FormValue("oxygen_therapy")),
+		AltSgpt:               ParseNullFloat(c.FormValue("alt_sgpt")),
+		AstSgo:                ParseNullFloat(c.FormValue("ast_sgo")),
+		Creatinine:            ParseNullFloat(c.FormValue("creatinine")),
+		Potassium:             ParseNullFloat(c.FormValue("potassium")),
+		Urea:                  ParseNullFloat(c.FormValue("urea")),
+		CreatinineKinase:      ParseNullFloat(c.FormValue("creatinine_kinase")),
+		Calcium:               ParseNullFloat(c.FormValue("calcium")),
+		Sodium:                ParseNullFloat(c.FormValue("sodium")),
+		AltSgptNd:             ParseNullInt(c.FormValue("alt_sgpt_nd")),
+		AstSgoNd:              ParseNullInt(c.FormValue("ast_sgo_nd")),
+		CreatinineNd:          ParseNullInt(c.FormValue("creatinine_nd")),
+		PotassiumNd:           ParseNullInt(c.FormValue("potassium_nd")),
+		UreaNd:                ParseNullInt(c.FormValue("urea_nd")),
+		CreatinineKinaseNd:    ParseNullInt(c.FormValue("creatinine_kinase_nd")),
+		CalciumNd:             ParseNullInt(c.FormValue("calcium_nd")),
+		SodiumNd:              ParseNullInt(c.FormValue("sodium_nd")),
+		Glucose:               ParseNullFloat(c.FormValue("glucose")),
+		Lactate:               ParseNullFloat(c.FormValue("lactate")),
+		Haemoglobin:           ParseNullFloat(c.FormValue("haemoglobin")),
+		TotalBilirubin:        ParseNullFloat(c.FormValue("total_bilirubin")),
+		WbcCount:              ParseNullFloat(c.FormValue("wbc_count")),
+		Platelets:             ParseNullFloat(c.FormValue("platelets")),
+		Pt:                    ParseNullFloat(c.FormValue("pt")),
+		Aptt:                  ParseNullFloat(c.FormValue("aptt")),
+		GlucoseNd:             ParseNullInt(c.FormValue("glucose_nd")),
+		LactateNd:             ParseNullInt(c.FormValue("lactate_nd")),
+		HaemoglobinNd:         ParseNullInt(c.FormValue("haemoglobin_nd")),
+		TotalBilirubinNd:      ParseNullInt(c.FormValue("total_bilirubin_nd")),
+		WbcCountNd:            ParseNullInt(c.FormValue("wbc_count_nd")),
+		PlateletsNd:           ParseNullInt(c.FormValue("platelets_nd")),
+		PtNd:                  ParseNullInt(c.FormValue("pt_nd")),
+		ApttNd:                ParseNullInt(c.FormValue("aptt_nd")),
+	}
+
+	if lab_id == 0 {
+		err := lab.Insert(c.Context(), db)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		lab.SetAsExists()
+		err := lab.Update(c.Context(), db)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
 	// re route
 
 	urlx := "/cases/encounters/new/" + strconv.Itoa(int(encounter.ClientID.Int64)) + "/" + strconv.Itoa(encounter.EncounterID)
@@ -431,13 +538,12 @@ func HandlerAPIGetEncounter(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *se
 	// Get ID from the query parameter
 
 	id := c.Query("id")
-	fmt.Println("GET:", id)
+
 	if id == "" {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "",
 		})
 	}
-	fmt.Println("0")
 
 	encounter_id, err := strconv.Atoi(id)
 	if err != nil {
@@ -453,13 +559,13 @@ func HandlerAPIGetEncounter(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *se
 			"message": "",
 		})
 	} */
-	fmt.Println("1")
+
 	var clinical = &models.Clinical{}
 	var vital = &models.Vital{}
 
 	clinical, _ = models.ClinicalByEncounterID(c.Context(), db, encounter_id)
 	vital, _ = models.VitalByEncounterID(c.Context(), db, encounter_id)
-	fmt.Println("2")
+
 	rtnStr := ` Vitals<br />
 				<table class="full-width" border="1">
 					<tr>
@@ -547,9 +653,39 @@ func HandlerAPIGetEncounter(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *se
 						</td>
 					</tr>
 				</table>`
-	fmt.Println("3")
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": rtnStr,
 	})
 
+}
+
+func HandlerAPIGetStatuses(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
+	userID := GetCurrentUser(c, store)
+
+	// Check if user is logged in
+	if userID == 0 {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	clientID := c.Query("client_id")
+	if clientID == "" {
+		clientID = "0"
+	}
+	fmt.Println(clientID)
+	statuses, er := models.Statusez(c.Context(), db, " client_id = "+clientID)
+	if er != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error fetching statuses",
+		})
+	}
+	fmt.Println(statuses)
+	return c.JSON(statuses)
+
+}
+
+func HandlerAPIPostStatus(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		"message": "Work in progress",
+	})
 }

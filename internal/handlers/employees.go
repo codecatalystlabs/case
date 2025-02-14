@@ -54,7 +54,40 @@ func HandlerEmployeeForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 	return GenerateHTML(c, data, "form_employee")
 }
 func HandlerEmployeeSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	return nil
+
+	id, er := strconv.Atoi(c.FormValue("id"))
+	if er != nil {
+		id = 0
+	}
+
+	employee := models.Employee{
+		EmployeeID:    id,
+		EmployeeFname: ParseNullString(c.FormValue("employee_fname")),
+		EmployeeLname: ParseNullString(c.FormValue("employee_lname")),
+		EmployeeSex:   ParseNullString(c.FormValue("employee_sex")),
+		EmployeePhone: ParseNullString(c.FormValue("employee_phone")),
+		EmployeeEmail: ParseNullString(c.FormValue("employee_email")),
+		EmployeeCadre: ParseNullString(c.FormValue("employee_cadre")),
+		Facility:      ParseNullInt(c.FormValue("facility")),
+	}
+
+	if employee.EmployeeID == 0 {
+		err := employee.Insert(c.Context(), db)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		employee.SetAsExists()
+		err := employee.Update(c.Context(), db)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
+	urlx := "/employees/new/" + strconv.Itoa(employee.EmployeeID)
+
+	return c.Redirect(urlx)
+
 }
 func HandlerEmployeeList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	fmt.Println("starting employee list")

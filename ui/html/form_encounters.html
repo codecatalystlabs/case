@@ -610,76 +610,99 @@
                             <style>
                                 table {
                                     width: 100%;
-                                    border: 1px solid black;
+                                    border: 1px solid lightgrey;
                                     border-collapse: collapse;
                                 }
                                 th, td {
-                                    border: 1px solid black;
+                                    border: 1px solid lightgrey;
                                     padding: 1px;
                                     text-align: left;
                                 }
                             </style>
                             <table>
                                 <tr>
-                                   <td colspan="6"><div class="row"><label class="col-sm-4 col-form-label col-form-label-sm" >Specimen collection done for EVD patients?</label> <div class="col-sm-1">{{ GetOptionField "yn" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div> If yes, what samples? • Blood	• Urine	• Buccal swab Other	</div>  </td> 
+                                   <td colspan="6">
+                                    <div class="row registration-input-row">
+                                        <div class="col-lg-6">
+                                            <div class="row">
+                                                <label class="col-sm-6 col-form-label col-form-label-sm" >Specimen collection done for EVD patients?</label> 
+                                                <div class="col-sm-6">
+                                                    {{ GetOptionField "yn" "specimen" "Specimen" "" .FormChild3.Specimen.Int64 1 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="row">
+                                                <label class="col-sm-6 col-form-label col-form-label-sm" >If yes, what samples?</label> 
+                                                <div class="col-sm-6">
+                                                    <input type="checkbox" value="1" name="sample_blood" id="sample_blood" {{ if eq .FormChild3.SampleBlood.Int64 1 }}checked{{ end }}  > Blood <br />	
+                                                    <input type="checkbox" value="1" name="sample_urine" id="sample_urine" {{ if eq .FormChild3.SampleUrine.Int64 1 }}checked{{ end }}  > Urine	 <br />	
+                                                    <input type="checkbox" value="1" name="sample_swab" id="sample_swab"   {{ if eq .FormChild3.SampleSwab.Int64 1 }}checked{{ end }}  > Buccal swab  <br />	
+                                                    Other	<input type="text" name="sample_aza" id="sample_aza"  value="{{ .FormChild3.SampleAza.String }}"> 
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </td> 
                                 </tr>
                                 <tr>
-                                    <td colspan="2">Ebola testing</td> 
-                                    <td>Collection date</td>
-                                    <td colspan="3">Result</td> 
+                                    <th colspan="2">Ebola testing</th> 
+                                    <th>Collection date</th>
+                                    <th colspan="3">Result</th> 
                                 </tr>
                                 <tr>
                                     <td colspan="2">
                                         <div class="row">
                                             <label class="col-sm-5 col-form-label col-form-label-sm">Ebola RDT: </label>
-                                            <div class="col-sm-5">{{ GetOptionField "e_rdt" "bleeding" "Bleeding" "" 0 1 }}</div>
+                                            <div class="col-sm-5">{{ GetOptionField "e_rdt" "ebola_rdt" "EbolaRdt" "" 0 1 }}</div>
                                         </div>
-                                        Other specify: <input type="text" name="" id=""  value="">
+                                        Other specify: <input type="text" name="ebola_rdt" id="ebola_rdt"  value="{{ .FormChild3.EbolaRdtAza.String }}">
                                     </td> 
-                                    <td><input size="5" type="date"></td>
-                                    <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div> </td>
+                                    <td><input size="5" value="{{ .FormChild3.EbolaRdtDate.String }}" type="date" id="ebola_rdt_date" name="ebola_rdt_date"></td>
+                                    <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "ebola_rdt_results" "EbolaRdtResults" "" .FormChild3.EbolaRdtResults.Int64 1 }}</div></div> </td>
                                 </tr>
                                 <tr>
                                     <td rowspan="2" colspan="2">
                                         <div class="row">
                                             <label class="col-sm-5 col-form-label col-form-label-sm">Ebola PCR:</label>
-                                            <div class="col-sm-5">{{ GetOptionField "e_pcr" "bleeding" "Bleeding" "" 0 1 }}</div>
+                                            <div class="col-sm-5">{{ GetOptionField "e_pcr" "ebola_pcr" "EbolaPcr" "" .FormChild3.EbolaPcr.Int64 1 }}</div>
                                         </div>
-                                        Other specify: <input type="text" name="" id="" value="">
+                                        Other specify: <input type="text" name="ebola_pcr_aza" id="ebola_pcr_aza" value="{{ .FormChild3.EbolaPcrAza.String }}">
                                     </td> 
-                                    <td rowspan="2" ><input size="5" type="date"></td>
+                                    <td rowspan="2" ><input size="5" value="{{ .FormChild3.EbolaPcrDate.String }}" type="date" id="ebola_pcr_date" name="ebola_pcr_date"></td>
                                     <td>GP</td>
                                     <td>NP</td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div class="row"> <div class="col-sm-6">{{ GetOptionField "po" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div>
-                                        <br /> CT: <input size="5" type="text" name="" id="" value="">
+                                        <div class="row"> <div class="col-sm-6">{{ GetOptionField "po" "ebola_pcr_gp" "EbolaPcrGp" "" .FormChild3.EbolaPcrGp.Int64 1 }}</div></div>
+                                        <br /> CT: <input size="5" type="text" name="ebola_pcr_gp_ct" id="ebola_pcr_gp_ct" value="{{ .FormChild3.EbolaPcrGpCt.Float64 }}">
                                     </td>
                                     <td>
-                                        <div class="row"> <div class="col-sm-6">{{ GetOptionField "po" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div>
-                                        <br /> CT: <input size="5" type="text" name="" id="" value="">
+                                        <div class="row"> <div class="col-sm-6">{{ GetOptionField "po" "ebola_pcr_np" "EbolaPcrNp" "" .FormChild3.EbolaPcrNp.Int64 1 }}</div></div>
+                                        <br /> CT: <input size="5" type="text" name="ebola_pcr_np_ct" id="ebola_pcr_np_ct" value="{{ .FormChild3.EbolaPcrNpCt.Float64 }}">
                                     </td>
-                                    <td><input type="checkbox" value="1" name="" id="" >indeterminate</td>
+                                    <td><input type="checkbox" value="1" name="ebola_pcr_indeterminate" id="ebola_pcr_indeterminate"  {{ if eq .FormChild3.EbolaPcrIndeterminate.Int64 1 }}checked{{ end }} >indeterminate</td>
                                 </tr>
                                 <tr>
                                     <td colspan="2">Malaria RDT</td> 
-                                    <td><input size="5" type="date" name="" id="" value=""></td>
-                                    <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div> </td> 
+                                    <td><input size="5" type="date" name="malaria_rdt_date" id="malaria_rdt_date" value="{{ .FormChild3.BloodCultureDate.String }}"></td>
+                                    <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "malaria_rdt_result" "MalariaRdtResult" "" .FormChild3.MalariaRdtResult.Int64 1 }}</div></div> </td> 
                                 </tr>
                                 <tr>
                                     <td colspan="2">Blood culture</td> 
-                                    <td><input size="5" type="date" name="" id="" value=""></td>
-                                    <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div></div> </td> 
+                                    <td><input size="5" type="date" name="blood_culture_date" id="blood_culture_date" value="{{ .FormChild3.BloodCultureDate.String }}"></td>
+                                    <td colspan="3"><div class="row"> <div class="col-sm-3">{{ GetOptionField "posx" "blood_culture_result" "BloodCultureResult" "" .FormChild3.BloodCultureResult.Int64 1 }}</div></div> </td> 
                                 </tr>
                                 <tr>
                                     <td colspan="6">
                                         <div class="row">
                                             <label class="col-sm-4 col-form-label col-form-label-sm" >Did patient test positive for any other infection?</label> 
-                                            <div class="col-sm-1">{{ GetOptionField "yn" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }}</div> 
+                                            <div class="col-sm-1">{{ GetOptionField "yn" "test_pos_infection" "TestPosInfection" "" .FormChild3.TestPosInfection.Int64 1 }}</div> 
                                             <label class="col-sm-4 col-form-label col-form-label-sm" >If Yes, specify</label> 
-                                            <div class="col-sm-3"><input type="text" name="" id="" value=""></div>
+                                            <div class="col-sm-3"><input type="text" name="test_pos_infection_aza" id="test_pos_infection_aza" value="{{ .FormChild3.TestPosInfectionAza.String }}"></div>
                                         </div>
                                     </td> 
                                 </tr>
@@ -688,28 +711,28 @@
                                 </tr>
                                 <tr>
                                     <td colspan="2">Haemoglobinuria</td> 
-                                    <td>{{ GetOptionField "pos" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }} </td>
+                                    <td>{{ GetOptionField "pos" "haemoglobinuria" "Haemoglobinuria" "" .FormChild3.Haemoglobinuria.Int64 1 }} </td>
                                     <td>Blood Gas</td> 
-                                    <td>{{ GetOptionField "blood" "bleeding" "Bleeding" "" 0 1 }} </td>
+                                    <td>{{ GetOptionField "blood" "blood_gas" "BloodGas" "" .FormChild3.BloodGas.Int64 1 }} </td>
                                     <td></td> 
                                     
                                 </tr>
                                 <tr>
                                     <td colspan="2">Proteinuria</td> 
-                                    <td>{{ GetOptionField "pos" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }} </td>
+                                    <td>{{ GetOptionField "pos" "proteinuria" "Proteinuria" "" .FormChild3.Proteinuria.Int64 1 }} </td>
                                     <td colspan="3">
-                                        Results: pH	<input type="text" size="5" name="" id="" value="">, 
-                                        pCO2	<input type="text" size="5" name="" id="" value="">, 
-                                        PaO2 	<input type="text" size="5" name="" id="" value="">,
-                                        HCO3<input type="text" size="5" name="" id="" value="">
+                                        Results: pH	<input type="text" size="5" name="ph" id="ph" value="{{ .FormChild3.Ph.Float64 }}">, 
+                                        pCO2	<input type="text" size="5" name="pco2" id="pco2" value="{{ .FormChild3.Pco2.Float64 }}">, 
+                                        PaO2 	<input type="text" size="5" name="pao2" id="pao2" value="{{ .FormChild3.Pao2.Float64 }}">,
+                                        HCO3<input type="text" size="5" name="hco3" id="hco3" value="{{ .FormChild3.Hco3.Float64 }}">
                                     </td> 
                                     
                                 </tr>
                                 <tr>
                                     <td colspan="2">Hematuria</td> 
-                                    <td>{{ GetOptionField "pos" "bleeding" "Bleeding" "" .FormChild2.Bleeding.Int64 1 }} </td>
+                                    <td>{{ GetOptionField "pos" "hematuria" "Hematuria" "" .FormChild3.Hematuria.Int64 1 }} </td>
                                     <td>Oxygen therapy at time of blood gas (L/min)</td> 
-                                    <td><input type="text" size="5" name="" id="" value=""></td>
+                                    <td><input type="text" size="5" name="oxygen_therapy" id="oxygen_therapy" value="{{ .FormChild3.OxygenTherapy.Float64 }}"></td>
                                     <td></td> 
                                     
                                 </tr>
@@ -726,67 +749,67 @@
                                 </tr>
                                 <tr>
                                     <td>ALT/SGPT (U/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="">DN</td>
+                                    <td><input size="5" type="text" name="alt_sgpt" id="alt_sgpt" value="{{ .FormChild3.AltSgpt.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="alt_sgpt_nd" id="alt_sgpt_nd" {{ if eq .FormChild3.AltSgptNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>Glucose (mmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="glucose" id="glucose" value="{{ .FormChild3.Glucose.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="glucose_nd" id="glucose_nd" {{ if eq .FormChild3.GlucoseNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>AST/SGO (U/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="ast_sgo" id="ast_sgo" value="{{ .FormChild3.AstSgo.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="ast_sgo_nd" id="ast_sgo_nd" {{ if eq .FormChild3.AstSgoNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>Lactate (mmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="lactate" id="lactate" value="{{ .FormChild3.Lactate.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="lactate_nd" id="lactate_nd" {{ if eq .FormChild3.LactateNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Creatinine (µmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="creatinine" id="creatinine" value="{{ .FormChild3.Creatinine.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="creatinine_nd" id="creatinine_nd" {{ if eq .FormChild3.CreatinineNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>Haemoglobin (g/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="haemoglobin" id="haemoglobin" value="{{ .FormChild3.Haemoglobin.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="haemoglobin_nd" id="haemoglobin_nd" {{ if eq .FormChild3.HaemoglobinNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Potassium (mmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="potassium" id="potassium" value="{{ .FormChild3.Potassium.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="potassium_nd" id="potassium_nd" {{ if eq .FormChild3.PotassiumNd.Int64 1 }}checked{{ end }}  >DN</td>
                                     <td>Total bilirubin (µmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="total_bilirubin" id="total_bilirubin" value="{{ .FormChild3.TotalBilirubin.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="total_bilirubin_nd" id="total_bilirubin_nd" {{ if eq .FormChild3.TotalBilirubinNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Urea (mmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="urea" id="urea" value="{{ .FormChild3.Urea.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="urea_nd" id="urea_nd" {{ if eq .FormChild3.UreaNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>WBC count (x109/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="wbc_count" id="wbc_count" value="{{ .FormChild3.WbcCount.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="wbc_count_nd" id="wbc_count_nd" {{ if eq .FormChild3.WbcCountNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Creatinine kinase (U/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="creatinine_kinase" id="creatinine_kinase" value="{{ .FormChild3.CreatinineKinase.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="creatinine_kinase_nd" id="creatinine_kinase_nd" {{ if eq .FormChild3.CreatinineKinaseNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>Platelets (x109/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="platelets" id="platelets" value="{{ .FormChild3.Platelets.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="platelets_nd" id="platelets_nd" {{ if eq .FormChild3.PlateletsNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Calcium (mmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="calcium" id="calcium" value="{{ .FormChild3.Calcium.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="calcium_nd" id="calcium_nd" {{ if eq .FormChild3.CalciumNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>PT</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="pt" id="pt" value="{{ .FormChild3.Pt.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="pt_nd" id="pt_nd" {{ if eq .FormChild3.PtNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                                 <tr>
                                     <td>Sodium (mmol/L)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="sodium" id="sodium" value="{{ .FormChild3.Sodium.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="sodium_nd" id="sodium_nd" {{ if eq .FormChild3.SodiumNd.Int64 1 }}checked{{ end }} >DN</td>
                                     <td>aPTT (seconds)</td>
-                                    <td><input size="5" type="text" name="" id="" value=""></td>
-                                    <td><input type="checkbox" value="1" name="" id="" >DN</td>
+                                    <td><input size="5" type="text" name="aptt" id="aptt" value="{{ .FormChild3.Aptt.Float64 }}"></td>
+                                    <td><input type="checkbox" value="1" name="aptt_nd" id="aptt_nd" {{ if eq .FormChild3.ApttNd.Int64 1 }}checked{{ end }} >DN</td>
                                 </tr>
                             </table>
                         </div>
@@ -797,8 +820,10 @@
                     </div>
                    
                 </div> 
-                        <input type="hidden" name="vitals_id"   id="vitals_id"   value="{{ .FormChild2.VitalsID }}"  >
+                        
                         <input type="hidden" name="clinical_id" id="clinical_id" value="{{ .FormChild1.ClinicalID }}">
+                        <input type="hidden" name="vitals_id"   id="vitals_id"   value="{{ .FormChild2.VitalsID }}"  >
+                        <input type="hidden" name="lab_id"      id="lab_id"      value="{{ .FormChild3.LabID }}">
 
                         <input type="hidden" name="id" id="id" value="{{.Form.EncounterID}}">
                         <input type="hidden" name="cid" id="cid" value="{{.Form.ClientID.Int64}}">

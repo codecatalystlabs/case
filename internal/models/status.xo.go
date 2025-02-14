@@ -14,6 +14,8 @@ type Status struct {
 	StatusDate  sql.NullString `json:"status_date"`  // status_date
 	Status      sql.NullString `json:"status"`       // status
 	StatusNotes sql.NullString `json:"status_notes"` // status_notes
+	UpdatedBy   sql.NullInt64  `json:"updated_by"`   // updated_by
+	UpdatedOn   sql.NullString `json:"updated_on"`   // updated_on
 	// xo fields
 	_exists, _deleted bool
 }
@@ -39,13 +41,13 @@ func (s *Status) Insert(ctx context.Context, db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO public.status (` +
-		`client_id, status_date, status, status_notes` +
+		`client_id, status_date, status, status_notes, updated_by, updated_on` +
 		`) VALUES (` +
-		`$1, $2, $3, $4` +
+		`$1, $2, $3, $4, $5, $6` +
 		`) RETURNING status_id`
 	// run
-	logf(sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes)
-	if err := db.QueryRowContext(ctx, sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes).Scan(&s.StatusID); err != nil {
+	logf(sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.UpdatedBy, s.UpdatedOn)
+	if err := db.QueryRowContext(ctx, sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.UpdatedBy, s.UpdatedOn).Scan(&s.StatusID); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -63,11 +65,11 @@ func (s *Status) Update(ctx context.Context, db DB) error {
 	}
 	// update with composite primary key
 	const sqlstr = `UPDATE public.status SET ` +
-		`client_id = $1, status_date = $2, status = $3, status_notes = $4 ` +
-		`WHERE status_id = $5`
+		`client_id = $1, status_date = $2, status = $3, status_notes = $4, updated_by = $5, updated_on = $6 ` +
+		`WHERE status_id = $7`
 	// run
-	logf(sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.StatusID)
-	if _, err := db.ExecContext(ctx, sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.StatusID); err != nil {
+	logf(sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.UpdatedBy, s.UpdatedOn, s.StatusID)
+	if _, err := db.ExecContext(ctx, sqlstr, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.UpdatedBy, s.UpdatedOn, s.StatusID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -89,16 +91,16 @@ func (s *Status) Upsert(ctx context.Context, db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO public.status (` +
-		`status_id, client_id, status_date, status, status_notes` +
+		`status_id, client_id, status_date, status, status_notes, updated_by, updated_on` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
+		`$1, $2, $3, $4, $5, $6, $7` +
 		`)` +
 		` ON CONFLICT (status_id) DO ` +
 		`UPDATE SET ` +
-		`client_id = EXCLUDED.client_id, status_date = EXCLUDED.status_date, status = EXCLUDED.status, status_notes = EXCLUDED.status_notes `
+		`client_id = EXCLUDED.client_id, status_date = EXCLUDED.status_date, status = EXCLUDED.status, status_notes = EXCLUDED.status_notes, updated_by = EXCLUDED.updated_by, updated_on = EXCLUDED.updated_on `
 	// run
-	logf(sqlstr, s.StatusID, s.ClientID, s.StatusDate, s.Status, s.StatusNotes)
-	if _, err := db.ExecContext(ctx, sqlstr, s.StatusID, s.ClientID, s.StatusDate, s.Status, s.StatusNotes); err != nil {
+	logf(sqlstr, s.StatusID, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.UpdatedBy, s.UpdatedOn)
+	if _, err := db.ExecContext(ctx, sqlstr, s.StatusID, s.ClientID, s.StatusDate, s.Status, s.StatusNotes, s.UpdatedBy, s.UpdatedOn); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -133,7 +135,7 @@ func (s *Status) Delete(ctx context.Context, db DB) error {
 func StatusByStatusID(ctx context.Context, db DB, statusID int) (*Status, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`status_id, client_id, status_date, status, status_notes ` +
+		`status_id, client_id, status_date, status, status_notes, updated_by, updated_on ` +
 		`FROM public.status ` +
 		`WHERE status_id = $1`
 	// run
@@ -141,7 +143,7 @@ func StatusByStatusID(ctx context.Context, db DB, statusID int) (*Status, error)
 	s := Status{
 		_exists: true,
 	}
-	if err := db.QueryRowContext(ctx, sqlstr, statusID).Scan(&s.StatusID, &s.ClientID, &s.StatusDate, &s.Status, &s.StatusNotes); err != nil {
+	if err := db.QueryRowContext(ctx, sqlstr, statusID).Scan(&s.StatusID, &s.ClientID, &s.StatusDate, &s.Status, &s.StatusNotes, &s.UpdatedBy, &s.UpdatedOn); err != nil {
 		return nil, logerror(err)
 	}
 	return &s, nil

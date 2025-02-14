@@ -664,26 +664,14 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td></td>
-                                        <td><select></select></td>
-                                        <td><input type="date"></td>
-                                        <td><select></select></td>
-                                        <td><input type="text"></td>
-                                        <td><button class="btn btn-primary btn-sm">Save</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td><button class="btn btn-primary btn-sm">*New</button></td>
-                                        <td colspan="5"></td>
-                                    </tr>
+                                <tbody id="status-table-body">
+                                    
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colspan="6">No Labs</td>
+                                        <td colspan="6"></td>
                                     </tr>
                                 </tfoot>
-                                
                             </table>
                         </div>
 
@@ -708,10 +696,84 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
 
-    <script>
         $(document).ready(function() {
-            
+            let clientId = $("#id").val(); 
+
+            if (!clientId) {
+                clientId = 0
+            }
+
+            // Function to load status records
+            function loadStatusRecords(clientId) {
+                
+                $.ajax({
+                    url: "/api/status/list",
+                    type: "GET",
+                    data: { client_id: clientId },
+                    dataType: "json",
+                    success: function(response) {
+                        
+                        if (Array.isArray(response)) {
+                            populateStatusTable(response);
+                        } else {
+                            console.error("Unexpected response format", response);
+                            showError("Invalid response from server.");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 401) {
+                            // Session expired, redirect to login
+                            alert("Session expired. Redirecting to login...");
+                            window.location.href = "/login";
+                        } else {
+                            // General error handling
+                            console.error("Fetch error:", error);
+                            showError("Failed to fetch status records. Please try again.");
+                        }
+                    }
+                });
+            }
+
+            // Load status records on page load
+            loadStatusRecords(clientId);            
+
+            // Handle row click to populate form
+            $(document).on("click", ".edit-btn", function() {
+                let row = $(this).closest("tr");
+
+                $("#status_id").val(row.data("id"));
+                $("#status_date").val(row.find("td:nth-child(3)").text());
+                $("#za_status").val(row.find("td:nth-child(4)").text());
+                
+                $("#status_notes").val(row.find("td:nth-child(5)").text());
+                
+                $("#status option").each(function() {
+                    console.log($(this).val());  // Logs all available values
+                });
+            });
+
+            // Handle *New button click
+            $("#new-btn").click(function() {
+                $("#status-form")[0].reset();
+                $("#status_id").val("");
+            });
+
+            // Handle save button click
+            $("#save-btn").click(function() {
+                let formData = $("#status-form").serialize();
+                $.ajax({
+                    url: "/api/status/save",
+                    type: "POST",
+                    data: formData,
+                    success: function(response) {
+                        loadStatusRecords(); // Refresh table with new data
+                        $("#status-form")[0].reset(); // Clear form after saving
+                    }
+                });
+            });
+                    
             // Attach click event to button
             $('#fetchButton').on('click', function() {
                 let id = $(this).data('id'); // Get ID from button attribute
@@ -729,6 +791,62 @@
                 });
             });
         });
+
+        // Function to populate the table with data
+        function populateStatusTable(data) {
+            let rows = `<tr>
+                            <form id="status-form">
+                                <td><input type="hidden" id="status_id" name="status_id"></td>
+                                <td>
+                                    
+                                </td>
+                                <td><input type="date" id="status_date" name="status_date"></td>
+                                <td>
+                                    <select id="za_status" name="za_status">
+                                        <option value="">-no status-</option>
+                                        <option value="Admitted">Admitted</option>
+                                        <option value="Cured">Cured</option>
+                                        <option value="Died">Died</option>
+                                        <option value="Run Away">Run Away</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" id="status_notes" name="status_notes"></td>
+                                <td><button type="button" id="save-btn" class="btn btn-primary btn-sm">Save</button></td>
+                            </form>
+                        </tr>
+                        <tr>
+                            <td><button type="button" id="new-btn" class="btn btn-warn btn-sm">*New</button></td>
+                            <td colspan="5"></td>
+                        </tr>`;
+
+            if (data.length === 0) {
+                rows = `<tr><td colspan="6" class="text-center">No records found</td></tr>`;
+            } else {
+                data.forEach((item, index) => {
+                    let status = item.ZeStatus;
+
+                    rows += `
+                        <tr data-id="${status.status_id}">
+                            <td>${index + 1}</td>
+                            <td>${item.FName.Valid ? item.FName.String : ""} ${item.LName.Valid ? item.LName.String : ""}</td>
+                            <td>${status.status_date.Valid ? status.status_date.String : ""}</td>
+                            <td>${status.status.Valid ? status.status.String : ""}</td>
+                            <td>${status.status_notes.Valid ? status.status_notes.String : ""}</td>
+                            <td><button class="edit-btn btn btn-primary btn-sm">Edit</button></td>
+                        </tr>
+                    `;
+                });
+            }
+            $("#status-table-body").html(rows);
+        }
+
+
+        // Function to display errors
+        function showError(message) {
+            $("#error-message").text(message).show();
+        }
+
+
 
         document.addEventListener("DOMContentLoaded", function() {
 
