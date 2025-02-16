@@ -13,6 +13,10 @@ import (
 )
 
 func HandlerHome(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
+	if c.Path() == "/discharges/verify/:i" {
+		return c.Next() // Skip authentication for this route
+	}
+
 	fmt.Println("starting home")
 
 	userID, userName := GetUser(c, sl, store)
@@ -38,6 +42,10 @@ func HandlerHome(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 }
 
 func HandlerLoginForm(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
+	if c.Path() == "/discharges/verify/:i" {
+		fmt.Print("it shows")
+		return c.Next() // Skip authentication for this route
+	}
 
 	sess, err := store.Get(c)
 
@@ -55,6 +63,9 @@ func HandlerLoginForm(c *fiber.Ctx, sl *slog.Logger, store *session.Store, confi
 }
 
 func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
+	if c.Path() == "/discharges/verify/:i" {
+		return c.Next() // Skip authentication for this route
+	}
 
 	sess, err := store.Get(c)
 	if err == nil {
@@ -110,6 +121,10 @@ func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 }
 
 func HandlerLoginOut(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
+	if c.Path() == "/discharges/verify/:i" {
+		return c.Next() // Skip authentication for this route
+	}
+
 	sess, err := store.Get(c)
 	if err != nil {
 		//return c.Status(fiber.StatusInternalServerError).SendString("Session error")
@@ -123,6 +138,10 @@ func HandlerLoginOut(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config
 }
 
 func HandlerLoginForgot(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
+
+	if c.Path() == "/discharges/verify/:i" {
+		return c.Next() // Skip authentication for this route
+	}
 
 	sess, err := store.Get(c)
 	if err == nil {

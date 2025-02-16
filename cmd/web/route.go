@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,6 +14,8 @@ import (
 
 func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger, config handlers.Config) {
 	RouteHome(app, db, sl, store, config)
+
+	// discharge verification route
 
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Next()
@@ -66,6 +69,10 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 
 func AuthRequired(store *session.Store) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		if c.Path() == "/discharges/verify/:i" {
+			return c.Next() // Skip authentication for this route
+		}
+
 		sess, err := store.Get(c)
 		if err != nil {
 			return err
@@ -83,6 +90,7 @@ func AuthRequired(store *session.Store) fiber.Handler {
 }
 
 func RouteAPIEncounter(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {
+	fmt.Println("even here")
 	v.Get("/", func(c *fiber.Ctx) error { return handlers.HandlerAPIGetEncounter(c, db, sl, store, config) })
 }
 
@@ -94,11 +102,11 @@ func RouteAPIStatus(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers
 func RouteDischarge(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {
 	v.Get("/list", func(c *fiber.Ctx) error { return handlers.GetDischarge(c, db, sl, store, config) })
 	v.Get("/certificate", func(c *fiber.Ctx) error { return handlers.Certificate(c, db, sl, store, config) })
-	v.Get("/verify", func(c *fiber.Ctx) error { return handlers.VerifyDischarge(c, db, sl, store, config) })
 	v.Post("/save", func(c *fiber.Ctx) error { return handlers.Discharge(c, db, sl, store, config) })
 }
 
 func RouteHome(app *fiber.App, db *sql.DB, sl *slog.Logger, store *session.Store, config handlers.Config) {
+	app.Get("/discharges/verify/:i", func(c *fiber.Ctx) error { return handlers.VerifyDischarge(c, db, sl, store, config) })
 	app.Get("/login", func(c *fiber.Ctx) error { return handlers.HandlerLoginForm(c, sl, store, config) })
 	app.Post("/login", func(c *fiber.Ctx) error { return handlers.HandlerLoginSubmit(c, db, sl, store, config) })
 	app.Get("/logout", func(c *fiber.Ctx) error { return handlers.HandlerLoginOut(c, sl, store, config) })

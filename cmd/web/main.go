@@ -7,6 +7,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"runtime"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -18,6 +19,15 @@ import (
 )
 
 var store = session.New() // Session store
+
+func trace() string {
+	pc, file, line, ok := runtime.Caller(1)
+	if !ok {
+		return "?"
+	}
+	fn := runtime.FuncForPC(pc)
+	return fmt.Sprintf("%s:%d %s", file, line, fn.Name())
+}
 
 func main() {
 
@@ -49,6 +59,7 @@ func main() {
 	SetRoute(app, db, store, mlogger, config) // Pass the appropriate *sql.DB instance here
 	fmt.Println("Starting server on:", config.Address)
 	// Start the app
+	log.Println(trace(), "Exit main()")
 	app.Listen(config.Address)
 }
 
