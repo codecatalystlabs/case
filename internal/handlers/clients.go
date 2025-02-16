@@ -672,20 +672,75 @@ func HandlerAPIGetStatuses(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *ses
 	if clientID == "" {
 		clientID = "0"
 	}
-	fmt.Println(clientID)
+
 	statuses, er := models.Statusez(c.Context(), db, " client_id = "+clientID)
 	if er != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error fetching statuses",
 		})
 	}
-	fmt.Println(statuses)
+
 	return c.JSON(statuses)
 
 }
 
 func HandlerAPIPostStatus(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-		"message": "Work in progress",
+
+	//=================
+
+	userID := GetCurrentUser(c, store)
+	fmt.Println("we here")
+	// Check if user is logged in
+	if userID == 0 {
+		fmt.Println("unauthorized")
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	//=============================
+
+	var formData map[string]interface{}
+
+	if err := c.BodyParser(&formData); err != nil {
+		fmt.Println("JSON parsing failed:", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	var s models.Status
+
+	s.StatusID = int(ParseNullInt2(formData["status_id"]).Int64)
+	s.ClientID = ParseNullInt2(formData["client_id"])
+	s.StatusDate = ParseNullString2(formData["status_date"])
+	s.Status = ParseNullString2(formData["status"])
+	s.StatusNotes = ParseNullString2(formData["status_notes"])
+
+	s.UpdatedBy.Valid = true
+	s.UpdatedBy.Int64 = int64(userID)
+
+	s.UpdatedOn.Valid = true
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("2006-01-02")
+	s.UpdatedOn.String = formattedTime
+
+	fmt.Println(s)
+	// Check if it's a new record (StatusID == 0)
+	if s.StatusID > 0 {
+		s.SetAsExists()
+		err := s.Update(c.Context(), db)
+		if err != nil {
+			fmt.Println("update fail:", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+	} else {
+
+		err := s.Insert(c.Context(), db)
+		if err != nil {
+			fmt.Println("insert fail:", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+	}
+	fmt.Println("we good")
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "success",
 	})
 }

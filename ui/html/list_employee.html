@@ -64,7 +64,9 @@
                             
                         </td>
                         <td>{{ $value.EmployeeCadre.String }}</td>
-                        <td>{{ $value.Facility.Int64 }}</td>
+                        <td>
+                            {{ GetDBLabel "facility" "facility_name" "facility_id" $value.Facility.Int64 }}
+                        </td>
                         <td>
                             <button class="btn btn-warning btn-sm" onclick="window.location.href='/employees/new/{{$value.EmployeeID}}'">Edit</button>
                             <div class="btn-group action-btn">

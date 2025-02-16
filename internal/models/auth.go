@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 )
 
 var (
@@ -24,15 +23,13 @@ var (
 
 func Authenticate(ctx context.Context, db DB, email, password string) (id int, err error) {
 	var hashedPassword string
-	fmt.Println("test authenticate")
+
 	flag, err := ConfirmAvailabilityOfUser(ctx, db)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		return 0, err
 	}
-
-	fmt.Println("flag: " + strconv.Itoa(flag))
 
 	if flag == 0 {
 		stmt := "SELECT user_id, user_pass FROM public.users WHERE user_name = $1 "
@@ -47,13 +44,11 @@ func Authenticate(ctx context.Context, db DB, email, password string) (id int, e
 			return 0, err
 		}
 
-		fmt.Printf("Username: %s\n Password: %s\n E-Pass 1: %s\n E-Pass DB: %s", email, password, Encrypt(password), hashedPassword)
-
 		if Encrypt(password) != hashedPassword {
 			fmt.Println("fake password: ")
 			return 0, ErrInvalidCredentials
 		}
-		fmt.Println("Am sending back: " + strconv.Itoa(id))
+
 		return id, nil
 	}
 
@@ -70,7 +65,7 @@ func ConfirmAvailabilityOfUser(ctx context.Context, db DB) (int, error) {
 		return 1, err
 	}
 	defer rows.Close()
-	fmt.Println("j0: ")
+
 	if rows.Next() {
 		err = rows.Scan(&count)
 
@@ -78,8 +73,6 @@ func ConfirmAvailabilityOfUser(ctx context.Context, db DB) (int, error) {
 			fmt.Println("jj: " + err.Error())
 			return 1, err
 		}
-
-		fmt.Println("Records: " + strconv.Itoa(count))
 
 		if count == 0 {
 
@@ -112,7 +105,7 @@ func ConfirmAvailabilityOfUser(ctx context.Context, db DB) (int, error) {
 			fmt.Println("j3: ")
 			return 0, nil
 		}
-		fmt.Println("j4: ")
+
 		return 0, nil
 	}
 

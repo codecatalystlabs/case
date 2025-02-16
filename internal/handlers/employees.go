@@ -92,14 +92,15 @@ func HandlerEmployeeSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *ses
 func HandlerEmployeeList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	fmt.Println("starting employee list")
 
+	CtxG = c
+	dbG = db
+
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
 
 	data := NewTemplateData(c, store)
 	data.User = userName
 	data.Role = role
-
-	fmt.Println("loading employee list page")
 	//
 	mysql := `SELECT ` +
 		`employee_id, employee_fname, employee_lname, employee_sex, employee_email, employee_phone, employee_cadre, facility ` +

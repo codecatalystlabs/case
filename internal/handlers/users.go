@@ -128,7 +128,7 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 		UserName:     ParseNullString(c.FormValue("user_name")),
 		UserEmployee: ParseNullInt(c.FormValue("user_employee")),
 	}
-	fmt.Println("2")
+
 	if user.UserID == 0 {
 
 		user.UserPass = sql.NullString{String: models.Encrypt("123456"), Valid: true}

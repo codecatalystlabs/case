@@ -40,7 +40,7 @@ func HandlerHome(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 func HandlerLoginForm(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
 
 	sess, err := store.Get(c)
-	fmt.Println("oba 0")
+
 	if err == nil {
 		userID := sess.Get("user")
 		if userID != nil {
@@ -49,16 +49,12 @@ func HandlerLoginForm(c *fiber.Ctx, sl *slog.Logger, store *session.Store, confi
 		}
 	}
 
-	fmt.Println("oba 1")
-
 	// load page
-
 	data := map[string]string{"Title": "Login Page"}
 	return GenerateHTML(c, data, "login")
 }
 
 func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	fmt.Println("oba 3")
 
 	sess, err := store.Get(c)
 	if err == nil {
@@ -68,7 +64,7 @@ func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 			return c.Redirect("/", 302)
 		}
 	}
-	fmt.Println("oba 4")
+
 	// Extract form values
 	username := c.FormValue("username")
 	password := c.FormValue("password")
@@ -78,7 +74,6 @@ func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 		c.Status(fiber.StatusBadRequest)      // Set HTTP 400 status
 		return c.Redirect("/login?error=400") // Redirect to login page
 	}
-	fmt.Println("oba 5")
 
 	id, er := models.Authenticate(c.Context(), db, username, password)
 	if er != nil {
@@ -86,7 +81,6 @@ func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 		return c.Redirect("/login?error=afail")
 	}
 
-	fmt.Println(id)
 	if id > 0 {
 		// Get session
 		sess, err := store.Get(c)
@@ -95,7 +89,7 @@ func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 			sl.Info("Session error")
 			return c.Redirect("/login?serror")
 		}
-		fmt.Println(id)
+
 		// Set session variables
 		sess.Set("user", id) // Example: Set user ID
 		sess.Set("username", username)
@@ -107,8 +101,7 @@ func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 			sl.Info("Failed to save session")
 			return c.Redirect("/login?sfail")
 		}
-		fmt.Println(sess.Get("user"))
-		fmt.Println(sess.Get("username"))
+
 		// Redirect to dashboard
 		return c.Redirect("/?goodnes=1")
 	}

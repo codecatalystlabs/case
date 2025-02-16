@@ -43,6 +43,10 @@ func (c *Status) SetAsExists() {
 	c._exists = true
 }
 
+func (c *Discharge) SetAsExists() {
+	c._exists = true
+}
+
 type ClientEncounter struct {
 	EncounterID   int
 	EncounterType string
@@ -103,6 +107,23 @@ func Statusez(ctx context.Context, db DB, flt string) ([]Statuz, error) {
 
 	return statuses, nil
 
+}
+
+func DischargeByClientID(ctx context.Context, db DB, clientID int) (*Discharge, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`discharge_id, client_id, discharge_date, final_diagnosis, final_diagnosis_other, discharge_outcome, discharge_seq_heari, discharge_seq_pregn, discharge_seq_ocula, discharge_seq_extre, discharge_seq_arthr, discharge_seq_neuro, discharge_seq_others, counselling_provided, discharging_officer, discharge_facility, discharge_seq_others_aza, entered_on, entered_by, updated_by, updated_on ` +
+		`FROM public.discharge ` +
+		`WHERE client_id = $1`
+	// run
+	logf(sqlstr, clientID)
+	d := Discharge{
+		_exists: true,
+	}
+	if err := db.QueryRowContext(ctx, sqlstr, clientID).Scan(&d.DischargeID, &d.ClientID, &d.DischargeDate, &d.FinalDiagnosis, &d.FinalDiagnosisOther, &d.DischargeOutcome, &d.DischargeSeqHeari, &d.DischargeSeqPregn, &d.DischargeSeqOcula, &d.DischargeSeqExtre, &d.DischargeSeqArthr, &d.DischargeSeqNeuro, &d.DischargeSeqOthers, &d.CounsellingProvided, &d.DischargingOfficer, &d.DischargeFacility, &d.DischargeSeqOthersAza, &d.EnteredOn, &d.EnteredBy, &d.UpdatedBy, &d.UpdatedOn); err != nil {
+		return nil, logerror(err)
+	}
+	return &d, nil
 }
 
 func Statuses(ctx context.Context, db DB, flt string) ([]Status, error) {

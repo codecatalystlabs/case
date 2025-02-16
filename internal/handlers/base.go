@@ -306,16 +306,15 @@ func GetUser(c *fiber.Ctx, sl *slog.Logger, store *session.Store) (int, string) 
 	userID, ok := sess.Get("user").(int)
 	if !ok {
 		fmt.Println("Failed to convert session value to int")
-	} else {
-		fmt.Println("User ID:", userID)
+		return 0, ""
 	}
 
 	username, ok := sess.Get("username").(string)
 	if !ok {
 		fmt.Println("Failed to convert session value to string")
-	} else {
-		fmt.Println("Username:", username)
+		return 0, ""
 	}
+
 	return userID, username
 }
 
@@ -746,6 +745,37 @@ func ParseNullTime(value string) sql.NullTime {
 		return sql.NullTime{Valid: false}
 	}
 	return sql.NullTime{Time: t, Valid: true}
+}
+
+// Convert interface{} to sql.NullInt64
+func ParseNullInt2(value interface{}) sql.NullInt64 {
+	if value == nil {
+		return sql.NullInt64{Valid: false}
+	}
+
+	switch v := value.(type) {
+	case float64: // JSON numbers are decoded as float64
+		return sql.NullInt64{Int64: int64(v), Valid: true}
+	case string:
+		if num, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return sql.NullInt64{Int64: num, Valid: true}
+		}
+	}
+
+	return sql.NullInt64{Valid: false}
+}
+
+// Convert interface{} to sql.NullString
+func ParseNullString2(value interface{}) sql.NullString {
+	if value == nil {
+		return sql.NullString{Valid: false}
+	}
+
+	if str, ok := value.(string); ok && str != "" {
+		return sql.NullString{String: str, Valid: true}
+	}
+
+	return sql.NullString{Valid: false}
 }
 
 // ConvertFiberToGin converts a Fiber context to a Gin context

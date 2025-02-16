@@ -41,7 +41,7 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 		hfs := app.Group("/secure")    // Health facilities
 		cse := app.Group("/cases")
 
-		enc := app.Group("/encounter")
+		//enc := app.Group("/encounter")
 		dis := app.Group("/discharge")
 
 		// Additional routes
@@ -54,9 +54,10 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 		RouteLab(lab, db, sl, config)
 
 		RouteEmployees(emp, db, sl, config)
+		RouteDischarge(dis, db, sl, config)
 
-		RouteLab(enc, db, sl, config)
-		RouteLab(dis, db, sl, config)
+		//RouteLab(enc, db, sl, config)
+		//RouteLab(lab, db, sl, config)
 
 		RouteAPIEncounter(enk, db, sl, config)
 		RouteAPIStatus(sta, db, sl, config)
@@ -88,6 +89,13 @@ func RouteAPIEncounter(v fiber.Router, db *sql.DB, sl *slog.Logger, config handl
 func RouteAPIStatus(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {
 	v.Get("/list", func(c *fiber.Ctx) error { return handlers.HandlerAPIGetStatuses(c, db, sl, store, config) })
 	v.Post("/save", func(c *fiber.Ctx) error { return handlers.HandlerAPIPostStatus(c, db, sl, store, config) })
+}
+
+func RouteDischarge(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {
+	v.Get("/list", func(c *fiber.Ctx) error { return handlers.GetDischarge(c, db, sl, store, config) })
+	v.Get("/certificate", func(c *fiber.Ctx) error { return handlers.Certificate(c, db, sl, store, config) })
+	v.Get("/verify", func(c *fiber.Ctx) error { return handlers.VerifyDischarge(c, db, sl, store, config) })
+	v.Post("/save", func(c *fiber.Ctx) error { return handlers.Discharge(c, db, sl, store, config) })
 }
 
 func RouteHome(app *fiber.App, db *sql.DB, sl *slog.Logger, store *session.Store, config handlers.Config) {
