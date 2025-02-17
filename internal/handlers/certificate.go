@@ -17,41 +17,6 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-func VerifyDischarge(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-
-	id, err := strconv.Atoi(c.Params("i"))
-
-	if err != nil {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalid Discharge Certificate"})
-	}
-
-	// Step 2: Fetch discharge record
-	discharge, err := models.DischargeByDischargeID(c.Context(), db, id) // Assuming this function exists
-	if err != nil {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalid Discharge Certificate"})
-	}
-
-	// Step 3: Check if discharge record exists
-	if discharge == nil {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalide Discharge Certificate"})
-	}
-
-	client, er := models.ClientByID(c.Context(), db, int(discharge.ClientID.Int64))
-	if er != nil {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalid Discharge Certificate"})
-	}
-
-	fmt.Println("Do we ever get here")
-	// Step 4: Return confirmation message
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":        "Valid Discharge Certificate",
-		"Patient":        client.Firstname.String + " " + client.Lastname.String,
-		"Patient #":      client.EtuNo.String,
-		"Discharge Date": discharge.DischargeDate.String,
-	})
-
-}
-
 func Discharge(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	//=================
 
@@ -243,7 +208,7 @@ func Certificate(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 	//pdf.Ln(35)
 
 	// Generate QR Code
-	qrLink := "response.health.go.ug/discharges/verify/:" + strconv.Itoa(discharge.DischargeID) // Replace with the actual verification link
+	qrLink := "response.health.go.ug/verify/discharges/:" + strconv.Itoa(discharge.DischargeID) // Replace with the actual verification link
 	qrFile := "qrcode.png"
 	err := qrcode.WriteFile(qrLink, qrcode.Medium, 256, qrFile)
 	if err != nil {

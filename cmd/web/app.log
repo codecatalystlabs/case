@@ -1,1 +1,6 @@
 time=2025-02-16T22:34:31.124+03:00 level=INFO msg="c:/Users/Mbaka/go/pkg/mod/github.com/moh/case/cmd/web/main.go:62 main.main Exit main()"
+time=2025-02-17T02:49:23.625+03:00 level=INFO msg="c:/Users/Mbaka/go/pkg/mod/github.com/moh/case/cmd/web/main.go:62 main.main Exit main()"
+time=2025-02-17T02:52:26.219+03:00 level=INFO msg="c:/Users/Mbaka/go/pkg/mod/github.com/moh/case/cmd/web/main.go:62 main.main Exit main()"
+time=2025-02-17T02:59:12.092+03:00 level=INFO msg="c:/Users/Mbaka/go/pkg/mod/github.com/moh/case/cmd/web/main.go:62 main.main Exit main()"
+time=2025-02-17T03:12:30.974+03:00 level=INFO msg="c:/Users/Mbaka/go/pkg/mod/github.com/moh/case/cmd/web/main.go:62 main.main Exit main()"
+time=2025-02-17T03:15:47.792+03:00 level=INFO msg="c:/Users/Mbaka/go/pkg/mod/github.com/moh/case/cmd/web/main.go:62 main.main Exit main()"
