@@ -290,14 +290,18 @@ func Certificate(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 	pdf.Ln(10) // Line break after the text
 
 	// Signatures Section
-	pdf.SetFont("Arial", "B", 12)
-	pdf.CellFormat(260, 10, "_________________________", "0", 0, "C", false, 0, "")
-	pdf.Ln(7)
 
 	pdf.SetFont("Arial", "", 12)
-	pdf.CellFormat(260, 10, "Ebola Treatment Unit Manager", "0", 1, "C", false, 0, "")
-	pdf.CellFormat(260, 10, facility.FacilityName.String, "0", 1, "C", false, 0, "")
-	pdf.Ln(15)
+	pdf.CellFormat(140, 10, "___________________________", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(140, 10, "___________________________", "0", 1, "C", false, 0, "")
+
+	pdf.CellFormat(140, 10, "Director General of Health Services", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(140, 10, "Ebola Treatment Unit Manager", "0", 1, "C", false, 0, "")
+
+	pdf.CellFormat(140, 10, "Ministry of Health", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(140, 10, facility.FacilityName.String, "0", 1, "C", false, 0, "")
+
+	pdf.Ln(25)
 
 	// Save PDF to Buffer (In-Memory)
 	var buf bytes.Buffer
