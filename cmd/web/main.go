@@ -57,9 +57,9 @@ func main() {
 	*/
 	// Set up routes
 	SetRoute(app, db, store, mlogger, config) // Pass the appropriate *sql.DB instance here
-	fmt.Println("Starting server on:", config.Address)
+	mlogger.Info("starting server...")
 	// Start the app
-	log.Println(trace(), "Exit main()")
+
 	app.Listen(config.Address)
 }
 
@@ -69,13 +69,14 @@ func getDB(config handlers.Config, sl *slog.Logger) *sql.DB {
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		fmt.Println("Cannot reach db:", err.Error())
-		log.Fatal(err)
+		fmt.Println("Cannot reach db: ", err.Error())
 		sl.Error("Failed to connect to database: " + err.Error())
 	}
 
 	if err = db.Ping(); err != nil {
-		fmt.Println("Cannot reach db:", err.Error())
+		fmt.Println("Cannot reach db: ", err.Error())
+		sl.Error("Cannot reach db: " + err.Error())
+
 	}
 
 	return db
@@ -85,7 +86,7 @@ func getDB(config handlers.Config, sl *slog.Logger) *sql.DB {
 func getConfig() (config handlers.Config) {
 	file, err := os.Open("config.json")
 	if err != nil {
-		fmt.Println("Error opening config file:", err)
+		fmt.Println("Error opening config file:", err.Error())
 		return config
 	}
 

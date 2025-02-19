@@ -21,7 +21,7 @@ func Discharge(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, 
 	//=================
 
 	userID := GetCurrentUser(c, store)
-	fmt.Println("we here 2")
+
 	// Check if user is logged in
 	if userID == 0 {
 		fmt.Println("unauthorized")
@@ -88,7 +88,6 @@ func Discharge(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, 
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 	}
-	fmt.Println("we good")
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success",
@@ -102,8 +101,6 @@ func GetDischarge(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Stor
 	if userID == 0 {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-
-	fmt.Println("get discharge")
 
 	clientID := c.Query("client_id")
 	if clientID == "" {
@@ -144,20 +141,20 @@ func Certificate(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 
 	disc, erx := models.DischargeByClientID(c.Context(), db, c_id)
 	if erx != nil {
-		fmt.Println("discharge:" + erx.Error())
+		fmt.Println("discharge: " + erx.Error())
 	} else {
 		discharge = *disc
 	}
 
 	client, erx := models.ClientByID(c.Context(), db, c_id)
 	if erx != nil {
-		fmt.Println("client:" + erx.Error())
+		fmt.Println("client: " + erx.Error())
 		//return nil
 	}
 
 	facility, erx := models.FacilityByFacilityID(c.Context(), db, int(client.Site.Int64))
 	if erx != nil {
-		fmt.Println("facility:" + erx.Error())
+		fmt.Println("facility: " + erx.Error())
 		//return nil
 	}
 
@@ -208,7 +205,7 @@ func Certificate(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 	//pdf.Ln(35)
 
 	// Generate QR Code
-	qrLink := "response.health.go.ug/verify/discharges/:" + strconv.Itoa(discharge.DischargeID) // Replace with the actual verification link
+	qrLink := "response.health.go.ug/verify/discharges/" + strconv.Itoa(discharge.DischargeID) // Replace with the actual verification link
 	qrFile := "qrcode.png"
 	err := qrcode.WriteFile(qrLink, qrcode.Medium, 256, qrFile)
 	if err != nil {
@@ -221,22 +218,16 @@ func Certificate(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 	_ = os.Remove(qrFile) // Cleanup QR Code file
 
 	// Ministry of Health Title
-	//pageWidth, _ := pdf.GetPageSize()
-	fmt.Println(pageWidth)
 
 	logo_text := "Ministry of Health, Republic of Uganda"
-	textWidth := pdf.GetStringWidth(logo_text)
-	logo_x := (pageWidth - textWidth) / 2
-	fmt.Println(logo_x)
+
 	pdf.SetFont("Arial", "", 10)
 	pdf.CellFormat(260, 20, logo_text, "0", 1, "C", false, 0, "")
 	//pdf.Ln(5)
 
 	// Certificate Title
 	title_text := "EVD Discharge Certificate"
-	title_textWidth := pdf.GetStringWidth(title_text)
-	title_x := (pageWidth - title_textWidth) / 2
-	fmt.Println(title_x)
+
 	pdf.SetFont("Arial", "B", 24)
 	pdf.CellFormat(260, 10, title_text, "0", 1, "C", false, 0, "")
 	pdf.Ln(10)
@@ -244,9 +235,7 @@ func Certificate(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store
 	// Certification Text
 
 	body1_text := "This is to certify that"
-	body1_textWidth := pdf.GetStringWidth(body1_text)
-	body1_x := (pageWidth - body1_textWidth) / 2
-	fmt.Println(body1_x)
+
 	pdf.SetFont("Arial", "i", 14)
 	pdf.CellFormat(260, 10, body1_text, "0", 1, "C", false, 0, "")
 	pdf.Ln(6)

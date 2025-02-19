@@ -5,6 +5,7 @@ import (
 	"case/internal/models"
 	"database/sql"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -512,6 +513,7 @@ func DecodeFormData(c *fiber.Ctx, v interface{}) error {
 	// Decode form data into the struct
 	if err := decoder.Decode(v, formData); err != nil {
 		fmt.Println("Decoding error:", err)
+		log.Println("Error retrieving session: ", err.Error())
 		return err
 	}
 
@@ -523,6 +525,7 @@ func GetCurrentUser(c *fiber.Ctx, store *session.Store) int {
 	sess, err := store.Get(c)
 	if err != nil {
 		fmt.Println("Error retrieving session:", err)
+		log.Println("Error retrieving session: ", err.Error())
 		return 0
 	}
 
@@ -530,6 +533,7 @@ func GetCurrentUser(c *fiber.Ctx, store *session.Store) int {
 	userInt, ok := userID.(int)
 	if !ok {
 		fmt.Println("User not found or not an int")
+		log.Println("User not found or not an int")
 		return 0
 	}
 	return userInt
@@ -540,12 +544,12 @@ func IsAuthenticated(store *session.Store) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		sess, err := store.Get(c)
 		if err != nil {
-			fmt.Println("Error retrieving session:", err)
+			log.Println("Error retrieving session:", err)
 			return c.Redirect("/login", fiber.StatusFound)
 		}
 
 		if sess.Get("isAuthenticated") == nil {
-			fmt.Println("No active session")
+			log.Println("No active session")
 			return c.Redirect("/login", fiber.StatusFound)
 		}
 
@@ -557,12 +561,12 @@ func IzAuthenticated(c *fiber.Ctx, store *session.Store) bool {
 
 	sess, err := store.Get(c)
 	if err != nil {
-		fmt.Println("Error retrieving session:", err)
+		log.Println("Error retrieving session:", err)
 		return false
 	}
 
 	if sess.Get("isAuthenticated") == nil {
-		fmt.Println("No active session")
+		log.Println("No active session")
 		return false
 	}
 
@@ -616,7 +620,7 @@ func GetDBOptions(table, cat, deflt, fld_name, fld_lab string, deflt_int int64) 
 
 	res, er := models.GetFields(CtxG.Context(), dbG, sql)
 	if er != nil {
-		fmt.Println("Error getting fields:", er)
+		log.Println("Error getting fields:", er)
 		return ""
 	}
 	i := 0
@@ -668,10 +672,10 @@ func GetDBLabel(table, namesFld, indexFld string, indexID int64) string {
 	err := dbG.QueryRowContext(CtxG.Context(), query, indexID).Scan(&label)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("No rows found for ID:", indexID)
+			log.Println("No rows found for ID:", indexID)
 			return ""
 		}
-		fmt.Println("Error executing query:", err)
+		log.Println("Error executing query:", err)
 		return ""
 	}
 	return label
@@ -696,9 +700,11 @@ func GetDBInt(table, namesFld, indexFld, whereString string, indexID int64) int6
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("No rows found for ID:", indexID)
+			DoZaLogging("INFO", "No rows found for ID "+strconv.Itoa(int(indexID))+": ", err)
 			return 0
 		}
-		fmt.Println("Error executing query:", err)
+
+		DoZaLogging("ERROR", "Error executing query:", err)
 		return 0
 	}
 	return int64(label)
@@ -806,4 +812,22 @@ func ConvertFiberToGin(fctx *fiber.Ctx) (*gin.Context, error) {
 	ginCtx.Request = httpReq
 
 	return ginCtx, nil
+}
+
+func DoZaLogging(typ, msg string, er error) {
+	switch typ {
+	case "ERROR":
+		log.Printf("ERROR: %s - %s", msg, er)
+		fmt.Printf("ERROR: %s - %s", msg, er)
+	case "INFO":
+		log.Printf("INFO: %s", msg)
+		fmt.Printf("INFO: %s", msg)
+	case "WARNING":
+		log.Printf("WARNING: %s", msg)
+		fmt.Printf("WARNING: %s", msg)
+	default:
+		log.Printf("UNKNOWN: %s - %s", msg, er)
+		fmt.Printf("UNKNOWN: %s - %s", msg, er)
+	}
+
 }

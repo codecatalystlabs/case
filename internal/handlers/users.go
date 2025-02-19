@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"strconv"
 
@@ -34,7 +35,7 @@ func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	//id := c.Params("i") // Retrieve the "id" parameter
 	id, err := strconv.Atoi(c.Params("i"))
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 	}
 	//uzer := models.User{}
 	var uzer models.User
@@ -83,7 +84,7 @@ func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	// Execute query safely with parameterized input
 	rows, err := db.QueryContext(c.Context(), mysql, id)
 	if err != nil {
-		fmt.Println("Query Error:", err.Error())
+		log.Println("Query Error:", err.Error())
 	}
 	defer rows.Close()
 
@@ -98,7 +99,7 @@ func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 			&f.FView, &f.FCreate, &f.FEdit, &f.FRemove,
 		)
 		if err != nil {
-			fmt.Println("Row Scan Error:", err)
+			log.Println("Row Scan Error: ", err.Error())
 			continue
 		}
 		functions = append(functions, f)
@@ -106,7 +107,7 @@ func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 
 	// Check for errors after looping
 	if err = rows.Err(); err != nil {
-		fmt.Println("Rows Iteration Error:", err)
+		log.Println("Rows Iteration Error:", err)
 	}
 
 	data.User = userName
@@ -134,13 +135,13 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 		user.UserPass = sql.NullString{String: models.Encrypt("123456"), Valid: true}
 		err := user.Insert(c.Context(), db)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 		}
 	} else {
 		user.SetAsExists()
 		err := user.Update_NoPass(c.Context(), db)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 		}
 	}
 
@@ -151,7 +152,7 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 	// Execute query safely with parameterized input
 	rows, err := db.QueryContext(c.Context(), mysql)
 	if err != nil {
-		fmt.Println("Query Error:", err.Error())
+		log.Println("Query Error:", err.Error())
 	}
 	defer rows.Close()
 
@@ -160,7 +161,7 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 		var m_nm string
 		err := rows.Scan(&m_id, &m_nm)
 		if err != nil {
-			fmt.Println("Row Scan Error:", err)
+			log.Println("Row Scan Error:", err)
 			continue
 		}
 
@@ -196,12 +197,12 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 			right.SetAsExists()
 			er := right.Update(c.Context(), db)
 			if er != nil {
-				fmt.Println(err.Error())
+				log.Println(err.Error())
 			}
 		} else {
 			er := right.Insert(c.Context(), db)
 			if er != nil {
-				fmt.Println(err.Error())
+				log.Println(err.Error())
 			}
 		}
 
@@ -213,7 +214,7 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 }
 
 func HandlerUserList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	fmt.Println("starting user list")
+	log.Println("starting user list")
 
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
@@ -222,7 +223,6 @@ func HandlerUserList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	data.User = userName
 	data.Role = role
 
-	fmt.Println("loading user list page")
 	//
 	mysql := "SELECT user_id, user_name, CONCAT(employee_fname, ' ', employee_lname) AS  lab FROM users, employee Where users.user_employee = employee_id"
 	var args []interface{}
@@ -235,7 +235,7 @@ func HandlerUserList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	// Execute query
 	rows, err := db.QueryContext(c.Context(), mysql, args...)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 	}
 	defer rows.Close()
 
@@ -257,9 +257,9 @@ func HandlerUserList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
-			fmt.Println("error loading user list: ", err.Error())
+			log.Println("error loading user list: ", err.Error())
 		} else {
-			fmt.Println("error loading user list: ", err.Error())
+			log.Println("error loading user list: ", err.Error())
 		}
 	}
 

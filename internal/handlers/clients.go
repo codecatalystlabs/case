@@ -19,7 +19,7 @@ var CtxG *fiber.Ctx
 var dbG *sql.DB
 
 func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	fmt.Println("starting case form")
+	DoZaLogging("INFO", "Starting Client form", nil)
 
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
@@ -38,18 +38,18 @@ func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 		if err == nil {
 			client = *c
 		}
-		fmt.Println("za id zi: ", c.ID)
+
 		data.IsIDPos = true
 	}
 
 	cE, err := models.ClientEncounters(c.Context(), db, "client_id="+strconv.Itoa(id))
 	if err != nil {
-		fmt.Println("something something: ", err.Error())
+		DoZaLogging("ERROR", "Failed to get encounters", err)
 	}
 
 	st, err := models.Statuses(c.Context(), db, "client_id="+strconv.Itoa(id))
 	if err != nil {
-		fmt.Println("something something: ", err.Error())
+		DoZaLogging("ERROR", "Failed to get statuses", err)
 	}
 
 	data.User = userName
@@ -59,7 +59,7 @@ func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	data.FormChild1 = cE
 	data.FormChild2 = st
 
-	fmt.Println("loading case form page")
+	DoZaLogging("INFO", "Load Client form", err)
 	return GenerateHTML(c, data, "form_patients")
 }
 func HandlerCasesSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
@@ -552,14 +552,6 @@ func HandlerAPIGetEncounter(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *se
 		})
 	}
 
-	//encounter := models.Encounter{}
-	//encounter, err := models.EncounterByEncounterID(c.Context(), db, encounter_id)
-	/* if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "",
-		})
-	} */
-
 	var clinical = &models.Clinical{}
 	var vital = &models.Vital{}
 
@@ -689,7 +681,6 @@ func HandlerAPIPostStatus(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sess
 	//=================
 
 	userID := GetCurrentUser(c, store)
-	fmt.Println("we here")
 	// Check if user is logged in
 	if userID == 0 {
 		fmt.Println("unauthorized")
@@ -721,7 +712,6 @@ func HandlerAPIPostStatus(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sess
 	formattedTime := currentTime.Format("2006-01-02")
 	s.UpdatedOn.String = formattedTime
 
-	fmt.Println(s)
 	// Check if it's a new record (StatusID == 0)
 	if s.StatusID > 0 {
 		s.SetAsExists()
@@ -738,7 +728,6 @@ func HandlerAPIPostStatus(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sess
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 	}
-	fmt.Println("we good")
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success",

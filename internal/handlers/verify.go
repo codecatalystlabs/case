@@ -3,7 +3,6 @@ package handlers
 import (
 	"case/internal/models"
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"strconv"
 
@@ -17,12 +16,14 @@ func VerifyDischarge2(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	id, err := strconv.Atoi(c.Params("i"))
 
 	if err != nil {
+		sl.Error("No ID provided: " + err.Error())
 		return c.Status(fiber.StatusOK).SendString("Invalid Discharge Certificate")
 	}
 
 	// Step 2: Fetch discharge record
 	discharge, err := models.DischargeByDischargeID(c.Context(), db, id) // Assuming this function exists
 	if err != nil {
+		sl.Error("failed to retrieve discharge details: " + err.Error())
 		return c.Status(fiber.StatusOK).SendString("Invalid Discharge Certificate")
 	}
 
@@ -30,6 +31,7 @@ func VerifyDischarge2(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 
 		client, er := models.ClientByID(c.Context(), db, int(discharge.ClientID.Int64))
 		if er != nil {
+			sl.Error("failed to retrieve client details: " + er.Error())
 			return c.Status(fiber.StatusOK).SendString("Invalid Discharge Certificate")
 		}
 
@@ -41,6 +43,7 @@ func VerifyDischarge2(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 
 		return c.Status(fiber.StatusOK).SendString(msg)
 	} else {
+		sl.Error("No client associeted with provided discharge details")
 		return c.Status(fiber.StatusOK).SendString("Invalid Discharge Certificate")
 	}
 }
@@ -50,26 +53,29 @@ func VerifyDischarge(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	id, err := strconv.Atoi(c.Params("i"))
 
 	if err != nil {
+		sl.Error("failed to retrieve supplied ID: " + err.Error())
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalid Discharge Certificate"})
 	}
 
 	// Step 2: Fetch discharge record
 	discharge, err := models.DischargeByDischargeID(c.Context(), db, id) // Assuming this function exists
 	if err != nil {
+		sl.Error("failed to retrieve discharge details: " + err.Error())
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalid Discharge Certificate"})
 	}
 
 	// Step 3: Check if discharge record exists
 	if discharge == nil {
+		sl.Error("no discharge details associated with id")
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalide Discharge Certificate"})
 	}
 
 	client, er := models.ClientByID(c.Context(), db, int(discharge.ClientID.Int64))
 	if er != nil {
+		sl.Error("failed to retrieve client details: " + er.Error())
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"error": "Invalid Discharge Certificate"})
 	}
 
-	fmt.Println("Do we ever get here")
 	// Step 4: Return confirmation message
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":        "Valid Discharge Certificate",

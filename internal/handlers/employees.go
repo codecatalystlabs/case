@@ -44,7 +44,6 @@ func HandlerEmployeeForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 	} else {
 		id = 0
 	}
-	fmt.Println("Creating")
 
 	data.User = userName
 	data.Role = role

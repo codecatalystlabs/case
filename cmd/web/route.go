@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -91,7 +90,6 @@ func AuthRequired(store *session.Store) fiber.Handler {
 }
 
 func RouteAPIEncounter(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) {
-	fmt.Println("even here")
 	v.Get("/", func(c *fiber.Ctx) error { return handlers.HandlerAPIGetEncounter(c, db, sl, store, config) })
 }
 

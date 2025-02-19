@@ -622,10 +622,10 @@
                                                             {{ range $key, $value := .FormChild1 }}
                                                             <tr>
                                                                 <td> <button class="btn btn-warning btn-sm" id="fetchButton" data-id="{{ $value.EncounterID }}">Preview</button></td>
-                                                                <td>{{ $value.EmployeeFname }} {{ $value.EmployeeLname }}</td>
-                                                                <td>{{ $value.EncounterDate }}</td>
-                                                                <td>{{ $value.EncounterTime }}</td>
-                                                                <td>{{ $value.EncounterType }}</td>
+                                                                <td>{{ $value.EmployeeFname.String }} {{ $value.EmployeeLname.String }}</td>
+                                                                <td>{{ $value.EncounterDate.String }}</td>
+                                                                <td>{{ $value.EncounterTime.String }}</td>
+                                                                <td>{{ $value.EncounterType.String }}</td>
                                                                 <td><button class="btn btn-primary btn-sm" onclick="window.location.href='/cases/encounters/new/{{ $value.ClientID}}/{{ $value.EncounterID }}'" >Edit</button></td>
                                                             </tr>
                                                             {{ end }}
@@ -665,6 +665,29 @@
                                         <th>Status</th>
                                         <th>Remarks</th>
                                         <th>Action</th>
+                                    </tr>
+                                    <tr>
+                                        <form id="status-form">
+                                            <td><input type="hidden" id="status_id" name="status_id"></td>
+                                            <td>
+                                                
+                                            </td>
+                                            <td><input type="date" id="status_date" name="status_date"></td>
+                                            <td>
+                                                <select id="za_status" name="za_status">
+                                                    <option value="">-no status-</option>
+                                                    <option value="Admitted">Admitted</option>
+                                                    <option value="Cured">Cured</option>
+                                                    <option value="Died">Died</option>
+                                                    <option value="Run Away">Run Away</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="text" id="status_notes" name="status_notes"></td>
+                                            <td>
+                                                <button type="button" id="save-btn" class="btn btn-success btn-sm">Save</button>
+                                                <button type="button" id="new-btn" class="btn btn-warning btn-sm">*New</button>
+                                            </td>
+                                        </form>
                                     </tr>
                                 </thead>
                                 <tbody id="status-table-body">
@@ -842,6 +865,7 @@
                         if (Array.isArray(response)) {
                             populateStatusTable(response);
                         } else {
+                            populateStatusTable(response);
                             console.error("Unexpected response format", response);
                             showError("Invalid response from server.");
                         }
@@ -912,6 +936,7 @@
                         $("#status-form")[0].reset(); // Clear form after saving
                     },
                     error: function(xhr, status, error) {
+                        loadStatusRecords(0);
                         console.error("Error saving data:", error);
                     }
                 });
@@ -1066,37 +1091,13 @@
 
     // Function to populate the table with data
     function populateStatusTable(data) {
-        let rows = `<tr>
-                        <form id="status-form">
-                            <td><input type="hidden" id="status_id" name="status_id"></td>
-                            <td>
-                                
-                            </td>
-                            <td><input type="date" id="status_date" name="status_date"></td>
-                            <td>
-                                <select id="za_status" name="za_status">
-                                    <option value="">-no status-</option>
-                                    <option value="Admitted">Admitted</option>
-                                    <option value="Cured">Cured</option>
-                                    <option value="Died">Died</option>
-                                    <option value="Run Away">Run Away</option>
-                                </select>
-                            </td>
-                            <td><input type="text" id="status_notes" name="status_notes"></td>
-                            <td>
-                                <button type="button" id="save-btn" class="btn btn-success btn-sm">Save</button>
-                                <button type="button" id="new-btn" class="btn btn-warning btn-sm">*New</button>
-                            </td>
-                        </form>
-                    </tr>
+        let rows = `
                     <tr>
                         <td></td>
                         <td colspan="5"></td>
                     </tr>`;
 
-        if (data.length === 0) {
-            rows += `<tr><td colspan="6" class="text-center">No records found</td></tr>`;
-        } else {
+        if (data.length > 0) {
             data.forEach((item, index) => {
                 let status = item.ZeStatus;
 
@@ -1111,7 +1112,10 @@
                     </tr>
                 `;
             });
+        } else {
+            rows += `<tr><td colspan="6" class="text-center">No records found</td></tr>`;
         }
+
         $("#status-table-body").html(rows);
     }
 

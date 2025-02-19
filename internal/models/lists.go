@@ -49,11 +49,11 @@ func (c *Discharge) SetAsExists() {
 
 type ClientEncounter struct {
 	EncounterID   int
-	EncounterType string
-	EmployeeFname string
-	EmployeeLname string
-	EncounterDate string
-	EncounterTime string
+	EncounterType sql.NullString
+	EmployeeFname sql.NullString
+	EmployeeLname sql.NullString
+	EncounterDate sql.NullString
+	EncounterTime sql.NullString
 	ClientID      int
 }
 
