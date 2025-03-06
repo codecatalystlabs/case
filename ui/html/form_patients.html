@@ -610,7 +610,6 @@
                                                             <th>#</th>
                                                             <th>Attending Clinician</th>
                                                             <th>Date</th>
-                                                            <th>Time</th>
                                                             <th>Type</th>
                                                             <th>Action</th>
                                                         </tr>
@@ -624,9 +623,8 @@
                                                                 <td> <button class="btn btn-warning btn-sm" id="fetchButton" data-id="{{ $value.EncounterID }}">Preview</button></td>
                                                                 <td>{{ $value.EmployeeFname.String }} {{ $value.EmployeeLname.String }}</td>
                                                                 <td>{{ $value.EncounterDate.String }}</td>
-                                                                <td>{{ $value.EncounterTime.String }}</td>
                                                                 <td>{{ $value.EncounterType.String }}</td>
-                                                                <td><button class="btn btn-primary btn-sm" onclick="window.location.href='/cases/encounters/new/{{ $value.ClientID}}/{{ $value.EncounterID }}'" >Edit</button></td>
+                                                                <td><a class="btn btn-primary btn-sm" href="/cases/encounters/new/{{ $value.ClientID}}/?dte={{ $value.EncounterDate.String }}" >Edit</a></td>
                                                             </tr>
                                                             {{ end }}
                                                         {{ end }}

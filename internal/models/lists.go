@@ -35,6 +35,10 @@ func (c *Lab) SetAsExists() {
 	c._exists = true
 }
 
+func (c *Treatment) SetAsExists() {
+	c._exists = true
+}
+
 func (c *Employee) SetAsExists() {
 	c._exists = true
 }
@@ -215,6 +219,52 @@ func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter
 
 }
 
+func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
+	// query
+	sqlstr := ` SELECT DISTINCT 
+					meta_name, employee_fname, employee_lname, encounter_date, client_id
+				FROM encounter 
+				LEFT JOIN meta ON meta.meta_id = encounter.encounter_type
+				LEFT JOIN employee ON employee.employee_id = encounter.managed_by `
+	var args []interface{}
+	if flt != "" {
+		sqlstr += " WHERE " + flt
+	}
+
+	//sqlstr += " GROUP BY employee_fname, employee_lname, encounter_date, client_id"
+	// Log the query
+	logf(sqlstr)
+
+	// Execute query
+	rows, err := db.QueryContext(ctx, sqlstr, args...)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+
+	// Slice to hold clients
+	var clientencounters []ClientEncounter
+
+	// Iterate through rows
+	for rows.Next() {
+		var e ClientEncounter
+		if err := rows.Scan(
+			&e.EncounterType, &e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.ClientID,
+		); err != nil {
+			return nil, logerror(err)
+		}
+		clientencounters = append(clientencounters, e)
+	}
+
+	// Check for iteration errors
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+
+	return clientencounters, nil
+
+}
+
 func ClinicalByEncounterID(ctx context.Context, db DB, encounterID int) (*Clinical, error) {
 	// query
 	const sqlstr = `SELECT ` +
@@ -264,6 +314,23 @@ func LabByEncounterID(ctx context.Context, db DB, encounterID int) (*Lab, error)
 		return nil, logerror(err)
 	}
 	return &l, nil
+}
+
+func TreatmentByEncounterID(ctx context.Context, db DB, encounterID int) (*Treatment, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`treatment_id, encounter_id, antibacterial, amoxicillin, ceftriaxone, cefixime, antibacterial_other, antibacterial_dose, antibacterial_route, antibacterial_freq, antimalarial, antimalarial_artesunate, antimalarial_arthemeter, antimalarial_al, antimalarial_aa, antimalarial_dose, antimalarial_route, antimalarial_freq, other_meds_specify, other_meds_dose, other_meds_route, other_meds_freq, ebola_experimental, ebola_experimental_if, oral, oral_ors, oral_ors_qty, oral_water, oral_water_qty, oral_other, oral_other_qty, iv, iv_qty, iv_using, iv_aza, access_type, blood_trans, oxygen_therapy, oxygen_qty, oxygen_with, vasopressors, renal, invasive, ebola_experimental_if_zmap, ebola_experimental_if_remd, ebola_experimental_if_regn, ebola_experimental_if_favi, ebola_experimental_if_mab, oral_other_aza, antibacterial_aza, antimalarial_artesunate_dose, antimalarial_artesunate_route, antimalarial_artesunate_freq, antimalarial_arthemeter_dose, antimalarial_arthemeter_route, antimalarial_arthemeter_freq, antimalarial_al_dose, antimalarial_al_route, antimalarial_al_freq, antimalarial_aa_dose, antimalarial_aa_route, antimalarial_aa_freq ` +
+		`FROM public.treatment ` +
+		`WHERE encounter_id = $1`
+	// run
+	logf(sqlstr, encounterID)
+	t := Treatment{
+		_exists: true,
+	}
+	if err := db.QueryRowContext(ctx, sqlstr, encounterID).Scan(&t.TreatmentID, &t.EncounterID, &t.Antibacterial, &t.Amoxicillin, &t.Ceftriaxone, &t.Cefixime, &t.AntibacterialOther, &t.AntibacterialDose, &t.AntibacterialRoute, &t.AntibacterialFreq, &t.Antimalarial, &t.AntimalarialArtesunate, &t.AntimalarialArthemeter, &t.AntimalarialAl, &t.AntimalarialAa, &t.AntimalarialDose, &t.AntimalarialRoute, &t.AntimalarialFreq, &t.OtherMedsSpecify, &t.OtherMedsDose, &t.OtherMedsRoute, &t.OtherMedsFreq, &t.EbolaExperimental, &t.EbolaExperimentalIf, &t.Oral, &t.OralOrs, &t.OralOrsQty, &t.OralWater, &t.OralWaterQty, &t.OralOther, &t.OralOtherQty, &t.Iv, &t.IvQty, &t.IvUsing, &t.IvAza, &t.AccessType, &t.BloodTrans, &t.OxygenTherapy, &t.OxygenQty, &t.OxygenWith, &t.Vasopressors, &t.Renal, &t.Invasive, &t.EbolaExperimentalIfZmap, &t.EbolaExperimentalIfRemd, &t.EbolaExperimentalIfRegn, &t.EbolaExperimentalIfFavi, &t.EbolaExperimentalIfMab, &t.OralOtherAza, &t.AntibacterialAza, &t.AntimalarialArtesunateDose, &t.AntimalarialArtesunateRoute, &t.AntimalarialArtesunateFreq, &t.AntimalarialArthemeterDose, &t.AntimalarialArthemeterRoute, &t.AntimalarialArthemeterFreq, &t.AntimalarialAlDose, &t.AntimalarialAlRoute, &t.AntimalarialAlFreq, &t.AntimalarialAaDose, &t.AntimalarialAaRoute, &t.AntimalarialAaFreq); err != nil {
+		return nil, logerror(err)
+	}
+	return &t, nil
 }
 
 func (u *User) Update_NoPass(ctx context.Context, db DB) error {
