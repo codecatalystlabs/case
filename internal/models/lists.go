@@ -222,9 +222,8 @@ func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter
 func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
 	// query
 	sqlstr := ` SELECT DISTINCT 
-					meta_name, employee_fname, employee_lname, encounter_date, client_id
+					employee_fname, employee_lname, encounter_date, client_id
 				FROM encounter 
-				LEFT JOIN meta ON meta.meta_id = encounter.encounter_type
 				LEFT JOIN employee ON employee.employee_id = encounter.managed_by `
 	var args []interface{}
 	if flt != "" {
@@ -249,7 +248,7 @@ func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter
 	for rows.Next() {
 		var e ClientEncounter
 		if err := rows.Scan(
-			&e.EncounterType, &e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.ClientID,
+			&e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.ClientID,
 		); err != nil {
 			return nil, logerror(err)
 		}

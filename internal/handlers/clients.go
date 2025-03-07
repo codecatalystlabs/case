@@ -228,7 +228,9 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 	labs := make([]models.Lab, 0, 3)
 	treats := make([]models.Treatment, 0, 3)
 
-	for range []int{0, 1, 2} {
+	numbers := make([]int, 31) // Create a slice of length 31 (0 to 30)
+	for range numbers {
+
 		encounter := models.Encounter{}
 		clinical := models.Clinical{}
 		vital := models.Vital{}

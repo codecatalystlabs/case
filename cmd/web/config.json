@@ -5,7 +5,7 @@
     "Static"         : "public",
     "Ux"             : "postgres",
     "Px"             : "root",
-    "Dx"             : "cases",
+    "Dx"             : "ios",
     "LogFile"        : "app.log",
     "LogData"        : "data.log",
     "Facility"       : "1"

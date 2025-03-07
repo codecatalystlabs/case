@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"case/internal/handlers"
+	"case/internal/reports"
 )
 
 func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger, config handlers.Config) {
@@ -46,6 +47,7 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 
 		//enc := app.Group("/encounter")
 		dis := app.Group("/discharge")
+		rpt := app.Group("/reports")
 
 		// Additional routes
 		RouteFacilities(hfs, db, sl, config)
@@ -58,6 +60,8 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 
 		RouteEmployees(emp, db, sl, config)
 		RouteDischarge(dis, db, sl, config)
+
+		RouteReports(rpt, db, sl, config)
 
 		//RouteLab(enc, db, sl, config)
 		//RouteLab(lab, db, sl, config)
@@ -199,4 +203,10 @@ func RouteLab(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Confi
 	v.Post("/filter", func(c *fiber.Ctx) error { return handlers.HandlerLabList(c, db, sl, store, config) })
 	v.Get("/list", func(c *fiber.Ctx) error { return handlers.HandlerLabList(c, db, sl, store, config) })
 	v.Get("/", func(c *fiber.Ctx) error { return handlers.HandlerLabList(c, db, sl, store, config) })
+}
+
+func RouteReports(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.Config) { //+
+	//+
+	v.Get("/view", func(c *fiber.Ctx) error { return reports.ReportView(c, db, sl, store, config) }) //+
+	v.Get("/", func(c *fiber.Ctx) error { return reports.ReportHome(c, db, sl, store, config) })
 }

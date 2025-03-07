@@ -12,6 +12,10 @@
             background-color: #ffffff;
             color: #333;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
         }
         .top-ribbon {
             background-color: #f8f9fa;
@@ -39,40 +43,35 @@
         .col-md-3 {
             max-width: 200px;
         }
+        .iframe-container {
+            width: 100%;
+            height: 100vh; /* Make it fill the entire viewport */
+        }
+        
     </style>
+    
 </head>
 <body>
-    <!-- Top Ribbon -->
-    <div class="top-ribbon d-flex justify-content-between">
-        <div class="ms-3">
-            <a href="/" class="me-3">Home</a>
-            <a href="/about" class="me-3">About</a>
-            <a href="#">Contact</a>
-        </div>
-        <div class="me-3">
-            <a href="/logout" class="me-3">Logout</a>
-            <a href="#">My Account</a>
-        </div>
-    </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Left-Hand Side Menu -->
-            <div class="col-md-3 side-menu">
-                <a href="/reports" class="menu-item">Generate Reports</a>
-                {{.Menuz}}
-                <a href="/help" class="menu-item">Help</a>
-            </div>
+            <div class="iframe-container">
+                <br/>
+                <h3>Case Management Summary Report</h3>
+                <p>
 
-            <!-- Main Content -->
-            <div class="col-md-9">
-                <div class="content">
-                    <h1>Welcome</h1>
-                    <p>This is a clean and minimalist webpage with a top ribbon and a left-hand side menu.</p>
-                </div>
+                    Table 1: Case summary by Sex<br/>
+                    {{ index .Form "gender_summary" }}
+                    <br/>
+                    Table 2: Case summary by Case classification<br/>
+                    {{ index .Form "status_summary" }}
+                    <br/>
+                    Table 3: Case summary by Admission ward<br/>
+                    {{ index .Form "ward_summary" }}
+                    <br/>
+                    Table 4: Summary of Key Comorbid conditions<br/>
+                    {{ index .Form "conditions_summary" }}
+                    <br/>
+                </p>
             </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
