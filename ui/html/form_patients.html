@@ -104,7 +104,7 @@
             <!-- Left-Hand Side Menu -->
             <div class="col-md-3 side-menu">
                 {{if .IsIDPos }}
-                <a href="/cases/encounters/new/{{.Form.ID}}/0" class="menu-item">New Encounter</a>
+                <a href="/cases/encounters/new/{{.Form.ID}}/?dte=0000-00-00" class="menu-item">New Encounter</a>
                 <a href="/cases/patientreport/{{.Form.ID}}" class="menu-item">Report</a>
                 {{end}}
                 <a href="/patienthelp" class="menu-item">Help</a>
