@@ -126,61 +126,61 @@ func GetOptionField(table, field, labs, defaultString string, defaultvalue, whol
 	}
 
 	if table == "pos" {
-		if defaultString == "pos" {
+		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
 
-		if defaultString == "neg" {
+		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
 
-		if defaultString == "nd" {
+		if defaultvalue == 3 {
 			zaDefa3 = "selected"
 		}
 
 		optionz = `<option value=""> -- select -- </option>
-					<option value="pos" ` + zaDefa1 + `>Pos</option>
-					<option value="neg" ` + zaDefa2 + `>Neg</option>
-					<option value="nd"  ` + zaDefa3 + `>ND</option>`
+					<option value="1" ` + zaDefa1 + `>Pos</option>
+					<option value="2" ` + zaDefa2 + `>Neg</option>
+					<option value="3"  ` + zaDefa3 + `>ND</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
 	}
 
 	if table == "po" {
-		if defaultString == "pos" {
+		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
 
-		if defaultString == "neg" {
+		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
 
 		optionz = `<option value=""> -- select -- </option>
-					<option value="pos" ` + zaDefa1 + `>Pos</option>
-					<option value="neg" ` + zaDefa2 + `>Neg</option>`
+					<option value="1" ` + zaDefa1 + `>Pos</option>
+					<option value="2" ` + zaDefa2 + `>Neg</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
 	}
 
 	if table == "posx" {
-		if defaultString == "pos" {
+		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
 
-		if defaultString == "neg" {
+		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
 
-		if defaultString == "indeterminate" {
+		if defaultvalue == 2 {
 			zaDefa3 = "selected"
 		}
 
 		optionz = `<option value=""> -- select -- </option>
-					<option value="pos" ` + zaDefa1 + `>Pos</option>
-					<option value="neg" ` + zaDefa2 + `>Neg</option>
-					<option value="indeterminate"  ` + zaDefa3 + `>Indeterminate</option>`
+					<option value="1" ` + zaDefa1 + `>Pos</option>
+					<option value="2" ` + zaDefa2 + `>Neg</option>
+					<option value="3"  ` + zaDefa3 + `>Indeterminate</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
@@ -227,66 +227,66 @@ func GetOptionField(table, field, labs, defaultString string, defaultvalue, whol
 	}
 
 	if table == "e_rdt" {
-		if defaultString == "Not Done" {
+		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
 
-		if defaultString == "Oraquick" {
+		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
 
-		if defaultString == "Others" {
+		if defaultvalue == 3 {
 			zaDefa3 = "selected"
 		}
 
 		optionz = `<option value=""> -- select -- </option>
-					<option value="Not Done" ` + zaDefa1 + `>Not Done</option>
-					<option value="Oraquick" ` + zaDefa2 + `>Oraquick</option>
-					<option value="Others" ` + zaDefa3 + `>Others</option>`
+					<option value="1" ` + zaDefa1 + `>Not Done</option>
+					<option value="2" ` + zaDefa2 + `>Oraquick</option>
+					<option value="3" ` + zaDefa3 + `>Others</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
 	}
 
 	if table == "blood" {
-		if defaultString == "ND" {
+		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
 
-		if defaultString == "Arterial" {
+		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
 
-		if defaultString == "Others" {
+		if defaultvalue == 3 {
 			zaDefa3 = "selected"
 		}
 
 		optionz = `<option value=""> -- select -- </option>
-					<option value="ND" ` + zaDefa1 + `>ND</option>
-					<option value="Arterial" ` + zaDefa2 + `>Arterial</option>
-					<option value="Venous" ` + zaDefa3 + `>Venous</option>`
+					<option value="1" ` + zaDefa1 + `>ND</option>
+					<option value="2" ` + zaDefa2 + `>Arterial</option>
+					<option value="3" ` + zaDefa3 + `>Venous</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
 	}
 
 	if table == "e_pcr" {
-		if defaultString == "Not Done" {
+		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
 
-		if defaultString == "GeneXpert" {
+		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
 
-		if defaultString == "Others" {
+		if defaultvalue == 3 {
 			zaDefa3 = "selected"
 		}
 
 		optionz = `<option value=""> -- select -- </option>
-					<option value="Not Done" ` + zaDefa1 + `>Not Done</option>
-					<option value="GeneXpert" ` + zaDefa2 + `>GeneXpert</option>
-					<option value="Others" ` + zaDefa3 + `>Others</option>`
+					<option value="1" ` + zaDefa1 + `>Not Done</option>
+					<option value="2" ` + zaDefa2 + `>GeneXpert</option>
+					<option value="3" ` + zaDefa3 + `>Others</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`

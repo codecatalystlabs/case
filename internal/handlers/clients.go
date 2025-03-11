@@ -271,7 +271,7 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 	encDate := c.Query("dte")
 
 	// Define the query with placeholders
-	query := "SELECT encounter_id FROM encounter WHERE client_id = $1 AND encounter_date = $2"
+	query := "SELECT encounter_id FROM encounter WHERE client_id = $1 AND encounter_date = $2 ORDER BY encounter_id ASC"
 
 	// Execute the query safely using parameterized arguments
 	rows, err := db.QueryContext(c.Context(), query, client.ID, encDate)
@@ -330,6 +330,9 @@ func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *
 			labs[i] = lab
 			treats[i] = treat
 			i++
+			if i == 3 {
+				break
+			}
 		}
 	} else {
 		fmt.Println("Error")
@@ -642,6 +645,8 @@ func HandlerCaseEncounterSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store
 		PtNd:                  ParseNullInt(c.FormValue("pt_nd")),
 		ApttNd:                ParseNullInt(c.FormValue("aptt_nd")),
 	}
+
+	fmt.Println(lab)
 
 	if lab_id == 0 {
 		err := lab.Insert(c.Context(), db)
