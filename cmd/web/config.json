@@ -4,7 +4,7 @@
     "WriteTimeout"   : 600,
     "Static"         : "public",
     "Ux"             : "postgres",
-    "Px"             : "root",
+    "Px"             : "pwaiswa",
     "Dx"             : "ios",
     "LogFile"        : "app.log",
     "LogData"        : "data.log",

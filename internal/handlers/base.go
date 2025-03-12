@@ -94,10 +94,14 @@ func GetOptionField(table, field, labs, defaultString string, defaultvalue, whol
 		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
 
 		optionz = `<option value=""> -- select -- </option>
 					<option value="1" ` + zaDefa1 + `>Mulago ETU</option>
-					<option value="2" ` + zaDefa2 + `>Mbale ETU</option>`
+					<option value="2" ` + zaDefa2 + `>Mbale ETU</option>
+					<option value="3" ` + zaDefa3 + `>Fort Portal ETU</option>`
 		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
 					` + optionz + `
 			      </select>`
