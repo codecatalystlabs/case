@@ -79,265 +79,6 @@ var functions = template.FuncMap{
 	"GetDBLabel":           GetDBLabel,
 }
 
-func GetOptionField(table, field, labs, defaultString string, defaultvalue, whole int64) string {
-	zaField := ""
-	zaDefa1 := ""
-	zaDefa2 := ""
-	zaDefa3 := ""
-	optionz := ""
-
-	if table == "facility" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Mulago ETU</option>
-					<option value="2" ` + zaDefa2 + `>Mbale ETU</option>
-					<option value="3" ` + zaDefa3 + `>Fort Portal ETU</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "Status" {
-		if defaultString == "Suspect" {
-			zaDefa1 = "selected"
-		}
-
-		if defaultString == "Case" {
-			zaDefa2 = "selected"
-		}
-
-		if defaultString == "Other" {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="Suspect" ` + zaDefa1 + `>Suspect</option>
-					<option value="Case" ` + zaDefa2 + `>Case</option>
-					<option value="Other" ` + zaDefa3 + `>Other</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "pos" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Pos</option>
-					<option value="2" ` + zaDefa2 + `>Neg</option>
-					<option value="3"  ` + zaDefa3 + `>ND</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "po" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Pos</option>
-					<option value="2" ` + zaDefa2 + `>Neg</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "posx" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Pos</option>
-					<option value="2" ` + zaDefa2 + `>Neg</option>
-					<option value="3"  ` + zaDefa3 + `>Indeterminate</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "yn" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Yes</option>
-					<option value="2" ` + zaDefa2 + `>No</option>`
-
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "YN" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Yes</option>
-					<option value="2" ` + zaDefa2 + `>No</option>
-					<option value="3" ` + zaDefa3 + `>Unknown</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "e_rdt" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Not Done</option>
-					<option value="2" ` + zaDefa2 + `>Oraquick</option>
-					<option value="3" ` + zaDefa3 + `>Others</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "blood" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>ND</option>
-					<option value="2" ` + zaDefa2 + `>Arterial</option>
-					<option value="3" ` + zaDefa3 + `>Venous</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "e_pcr" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Not Done</option>
-					<option value="2" ` + zaDefa2 + `>GeneXpert</option>
-					<option value="3" ` + zaDefa3 + `>Others</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if whole == 1 {
-		return zaField
-	}
-	return optionz
-}
-
-func GetUser(c *fiber.Ctx, sl *slog.Logger, store *session.Store) (int, string) {
-	sess, err := store.Get(c)
-	if err != nil {
-		sl.Info("Session error")
-	}
-
-	userID, ok := sess.Get("user").(int)
-	if !ok {
-		fmt.Println("Failed to convert session value to int")
-		return 0, ""
-	}
-
-	username, ok := sess.Get("username").(string)
-	if !ok {
-		fmt.Println("Failed to convert session value to string")
-		return 0, ""
-	}
-
-	return userID, username
-}
-
-func GetCurrentFacility(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store) int {
-	sqlstr := ` SELECT
-					facility
-				FROM public.users u, public.employee e
-				WHERE u.user_employee = e.employee_id AND u.user_id= $1`
-
-	userID, _ := GetUser(c, sl, store)
-
-	var facility int
-	if err := db.QueryRowContext(c.Context(), sqlstr, userID).Scan(&facility); err != nil {
-		return 0
-	}
-	return facility
-}
-
 func HumanDate(t time.Time) string {
 	return t.Format("02 Jan 2006")
 }
@@ -577,6 +318,386 @@ func IzAuthenticated(c *fiber.Ctx, store *session.Store) bool {
 	return true
 }
 
+func ParseNullString(value string) sql.NullString {
+	if value == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: value, Valid: true}
+}
+
+func ParseNullInt(value string) sql.NullInt64 {
+	if value == "" {
+		return sql.NullInt64{Valid: false}
+	}
+	var i int64
+	_, err := fmt.Sscanf(value, "%d", &i)
+	if err != nil {
+		return sql.NullInt64{Valid: false}
+	}
+	return sql.NullInt64{Int64: i, Valid: true}
+}
+
+func ParseNullFloat(value string) sql.NullFloat64 {
+	if value == "" {
+		return sql.NullFloat64{Valid: false}
+	}
+	var f float64
+	_, err := fmt.Sscanf(value, "%f", &f)
+	if err != nil {
+		return sql.NullFloat64{Valid: false}
+	}
+	return sql.NullFloat64{Float64: f, Valid: true}
+}
+
+func ParseNullTime(value string) sql.NullTime {
+	if value == "" {
+		return sql.NullTime{Valid: false}
+	}
+	t, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return sql.NullTime{Valid: false}
+	}
+	return sql.NullTime{Time: t, Valid: true}
+}
+
+// Convert interface{} to sql.NullInt64
+func ParseNullInt2(value interface{}) sql.NullInt64 {
+	if value == nil {
+		return sql.NullInt64{Valid: false}
+	}
+
+	switch v := value.(type) {
+	case float64: // JSON numbers are decoded as float64
+		return sql.NullInt64{Int64: int64(v), Valid: true}
+	case string:
+		if num, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return sql.NullInt64{Int64: num, Valid: true}
+		}
+	}
+
+	return sql.NullInt64{Valid: false}
+}
+
+// Convert interface{} to sql.NullString
+func ParseNullString2(value interface{}) sql.NullString {
+	if value == nil {
+		return sql.NullString{Valid: false}
+	}
+
+	if str, ok := value.(string); ok && str != "" {
+		return sql.NullString{String: str, Valid: true}
+	}
+
+	return sql.NullString{Valid: false}
+}
+
+// ConvertFiberToGin converts a Fiber context to a Gin context
+func ConvertFiberToGin(fctx *fiber.Ctx) (*gin.Context, error) {
+	// Create a new HTTP request using Fiber's request data
+	req := fctx.Request()
+
+	// Convert Fiber request to standard *http.Request
+	httpReq, err := http.NewRequest(
+		string(req.Header.Method()),
+		fctx.OriginalURL(),
+		bytes.NewReader(req.Body()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Copy headers from Fiber to the new request
+	req.Header.VisitAll(func(key, value []byte) {
+		httpReq.Header.Set(string(key), string(value))
+	})
+
+	// Create a new Gin response recorder
+	w := httptest.NewRecorder()
+
+	// Create a new Gin context
+	ginCtx, _ := gin.CreateTestContext(w)
+	ginCtx.Request = httpReq
+
+	return ginCtx, nil
+}
+
+func DoZaLogging(typ, msg string, er error) {
+	switch typ {
+	case "ERROR":
+		log.Printf("ERROR: %s - %s", msg, er)
+		fmt.Printf("ERROR: %s - %s", msg, er)
+	case "INFO":
+		log.Printf("INFO: %s", msg)
+		fmt.Printf("INFO: %s", msg)
+	case "WARNING":
+		log.Printf("WARNING: %s", msg)
+		fmt.Printf("WARNING: %s", msg)
+	default:
+		log.Printf("UNKNOWN: %s - %s", msg, er)
+		fmt.Printf("UNKNOWN: %s - %s", msg, er)
+	}
+
+}
+
+func GetOptionField(table, field, labs, defaultString string, defaultvalue, whole int64) string {
+	zaField := ""
+	zaDefa1 := ""
+	zaDefa2 := ""
+	zaDefa3 := ""
+	optionz := ""
+
+	if table == "facility" {
+
+		//zaField = GetDBOptions("site", "", "", field, labs, defaultvalue)
+
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+						<option value="1" ` + zaDefa1 + `>Mulago ETU</option>
+						<option value="2" ` + zaDefa2 + `>Mbale ETU</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+						` + optionz + `
+				      </select>`
+
+	}
+
+	if table == "Status" {
+		if defaultString == "Suspect" {
+			zaDefa1 = "selected"
+		}
+
+		if defaultString == "Case" {
+			zaDefa2 = "selected"
+		}
+
+		if defaultString == "Other" {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="Suspect" ` + zaDefa1 + `>Suspect</option>
+					<option value="Case" ` + zaDefa2 + `>Case</option>
+					<option value="Other" ` + zaDefa3 + `>Other</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "pos" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Pos</option>
+					<option value="2" ` + zaDefa2 + `>Neg</option>
+					<option value="3"  ` + zaDefa3 + `>ND</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "po" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Pos</option>
+					<option value="2" ` + zaDefa2 + `>Neg</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "posx" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Pos</option>
+					<option value="2" ` + zaDefa2 + `>Neg</option>
+					<option value="3"  ` + zaDefa3 + `>Indeterminate</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "yn" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Yes</option>
+					<option value="2" ` + zaDefa2 + `>No</option>`
+
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "YN" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Yes</option>
+					<option value="2" ` + zaDefa2 + `>No</option>
+					<option value="3" ` + zaDefa3 + `>Unknown</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "e_rdt" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Not Done</option>
+					<option value="2" ` + zaDefa2 + `>Oraquick</option>
+					<option value="3" ` + zaDefa3 + `>Others</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "blood" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>ND</option>
+					<option value="2" ` + zaDefa2 + `>Arterial</option>
+					<option value="3" ` + zaDefa3 + `>Venous</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if table == "e_pcr" {
+		if defaultvalue == 1 {
+			zaDefa1 = "selected"
+		}
+
+		if defaultvalue == 2 {
+			zaDefa2 = "selected"
+		}
+
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
+
+		optionz = `<option value=""> -- select -- </option>
+					<option value="1" ` + zaDefa1 + `>Not Done</option>
+					<option value="2" ` + zaDefa2 + `>GeneXpert</option>
+					<option value="3" ` + zaDefa3 + `>Others</option>`
+		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+					` + optionz + `
+			      </select>`
+	}
+
+	if whole == 1 {
+		return zaField
+	}
+	return optionz
+}
+
+func GetUser(c *fiber.Ctx, sl *slog.Logger, store *session.Store) (int, string) {
+	sess, err := store.Get(c)
+	if err != nil {
+		sl.Info("Session error")
+	}
+
+	userID, ok := sess.Get("user").(int)
+	if !ok {
+		fmt.Println("Failed to convert session value to int")
+		return 0, ""
+	}
+
+	username, ok := sess.Get("username").(string)
+	if !ok {
+		fmt.Println("Failed to convert session value to string")
+		return 0, ""
+	}
+
+	return userID, username
+}
+
+func GetCurrentFacility(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store) int {
+	sqlstr := ` SELECT
+					facility
+				FROM public.users u, public.employee e
+				WHERE u.user_employee = e.employee_id AND u.user_id= $1`
+
+	userID, _ := GetUser(c, sl, store)
+
+	var facility int
+	if err := db.QueryRowContext(c.Context(), sqlstr, userID).Scan(&facility); err != nil {
+		return 0
+	}
+	return facility
+}
+
 func Get_Client_Optionz() (opt map[string]map[string]string) {
 	opt = make(map[string]map[string]string)
 	// Add data to the map of maps
@@ -712,126 +833,5 @@ func GetDBInt(table, namesFld, indexFld, whereString string, indexID int64) int6
 		return 0
 	}
 	return int64(label)
-
-}
-
-func ParseNullString(value string) sql.NullString {
-	if value == "" {
-		return sql.NullString{Valid: false}
-	}
-	return sql.NullString{String: value, Valid: true}
-}
-
-func ParseNullInt(value string) sql.NullInt64 {
-	if value == "" {
-		return sql.NullInt64{Valid: false}
-	}
-	var i int64
-	_, err := fmt.Sscanf(value, "%d", &i)
-	if err != nil {
-		return sql.NullInt64{Valid: false}
-	}
-	return sql.NullInt64{Int64: i, Valid: true}
-}
-
-func ParseNullFloat(value string) sql.NullFloat64 {
-	if value == "" {
-		return sql.NullFloat64{Valid: false}
-	}
-	var f float64
-	_, err := fmt.Sscanf(value, "%f", &f)
-	if err != nil {
-		return sql.NullFloat64{Valid: false}
-	}
-	return sql.NullFloat64{Float64: f, Valid: true}
-}
-
-func ParseNullTime(value string) sql.NullTime {
-	if value == "" {
-		return sql.NullTime{Valid: false}
-	}
-	t, err := time.Parse("2006-01-02", value)
-	if err != nil {
-		return sql.NullTime{Valid: false}
-	}
-	return sql.NullTime{Time: t, Valid: true}
-}
-
-// Convert interface{} to sql.NullInt64
-func ParseNullInt2(value interface{}) sql.NullInt64 {
-	if value == nil {
-		return sql.NullInt64{Valid: false}
-	}
-
-	switch v := value.(type) {
-	case float64: // JSON numbers are decoded as float64
-		return sql.NullInt64{Int64: int64(v), Valid: true}
-	case string:
-		if num, err := strconv.ParseInt(v, 10, 64); err == nil {
-			return sql.NullInt64{Int64: num, Valid: true}
-		}
-	}
-
-	return sql.NullInt64{Valid: false}
-}
-
-// Convert interface{} to sql.NullString
-func ParseNullString2(value interface{}) sql.NullString {
-	if value == nil {
-		return sql.NullString{Valid: false}
-	}
-
-	if str, ok := value.(string); ok && str != "" {
-		return sql.NullString{String: str, Valid: true}
-	}
-
-	return sql.NullString{Valid: false}
-}
-
-// ConvertFiberToGin converts a Fiber context to a Gin context
-func ConvertFiberToGin(fctx *fiber.Ctx) (*gin.Context, error) {
-	// Create a new HTTP request using Fiber's request data
-	req := fctx.Request()
-
-	// Convert Fiber request to standard *http.Request
-	httpReq, err := http.NewRequest(
-		string(req.Header.Method()),
-		fctx.OriginalURL(),
-		bytes.NewReader(req.Body()),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Copy headers from Fiber to the new request
-	req.Header.VisitAll(func(key, value []byte) {
-		httpReq.Header.Set(string(key), string(value))
-	})
-
-	// Create a new Gin response recorder
-	w := httptest.NewRecorder()
-
-	// Create a new Gin context
-	ginCtx, _ := gin.CreateTestContext(w)
-	ginCtx.Request = httpReq
-
-	return ginCtx, nil
-}
-
-func DoZaLogging(typ, msg string, er error) {
-	switch typ {
-	case "ERROR":
-		log.Printf("ERROR: %s - %s", msg, er)
-		fmt.Printf("ERROR: %s - %s", msg, er)
-	case "INFO":
-		log.Printf("INFO: %s", msg)
-		fmt.Printf("INFO: %s", msg)
-	case "WARNING":
-		log.Printf("WARNING: %s", msg)
-		fmt.Printf("WARNING: %s", msg)
-	default:
-		log.Printf("UNKNOWN: %s - %s", msg, er)
-		fmt.Printf("UNKNOWN: %s - %s", msg, er)
-	}
 
 }

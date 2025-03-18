@@ -370,6 +370,7 @@ func saveEncounter(c *fiber.Ctx, db *sql.DB, userID int, cid, dte string) (int, 
 			ClientID:      ParseNullInt(cid),
 			EncounterDate: ParseNullString(dte),
 			ManagedBy:     ParseNullInt(c.FormValue("managed_by")),
+			ClinicalTeam:  ParseNullString(c.FormValue("clinical_team")),
 		}
 
 		if id == 0 {

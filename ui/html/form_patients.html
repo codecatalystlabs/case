@@ -840,349 +840,165 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
+<script>
+    $(document).ready(function() {
+    let clientId = parseInt($("#id").val()) || 0;
 
-        $(document).ready(function() {
-            let clientId = $("#id").val(); 
-
-            if (!clientId) {
-                clientId = 0
-            }
-
-            // Function to load status records
-            function loadStatusRecords(clientId) {
-                
-                $.ajax({
-                    url: "/api/status/list",
-                    type: "GET",
-                    data: { client_id: clientId },
-                    dataType: "json",
-                    success: function(response) {
-                        
-                        if (Array.isArray(response)) {
-                            populateStatusTable(response);
-                        } else {
-                            populateStatusTable(response);
-                            console.error("Unexpected response format", response);
-                            showError("Invalid response from server.");
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 401) {
-                            // Session expired, redirect to login
-                            alert("Session expired. Redirecting to login...");
-                            window.location.href = "/login";
-                        } else {
-                            // General error handling
-                            console.error("Fetch error:", error);
-                            showError("Failed to fetch status records. Please try again.");
-                        }
-                    }
-                });
-            }
-
-            // Load status records on page load
-            loadStatusRecords(clientId);            
-
-            // Handle row click to populate form
-            $(document).on("click", ".edit-btn", function() {
-                let row = $(this).closest("tr");
-
-                $("#status_id").val(row.data("id"));
-                $("#status_date").val(row.find("td:nth-child(3)").text());
-                $("#za_status").val(row.find("td:nth-child(4)").text());                
-                $("#status_notes").val(row.find("td:nth-child(5)").text());
-                
-            });
-
-            // Handle *New button click
-            $(document).on("click", "#new-btn", function() {
-                alert("clearly")
-                $("#status-form")[0].reset();
-                $("#status_id").val("");
-            });
-
-            $(document).on("click", "#save-btn", function() {
-                
-                let statusId = $("#status_id").val();
-                let statusDate = $("#status_date").val();
-                let zaStatus = $("#za_status").val();
-                let statusNotes = $("#status_notes").val();
-                let clientId = $("#id").val(); // Assuming `#id` is outside this form
-
-                // Construct object manually
-                let formData = {
-                    status_id: statusId,
-                    status_date: statusDate,
-                    status: zaStatus,
-                    status_notes: statusNotes,
-                    client_id: clientId
-                };
-
-                //let clientId = $("#id").val();  // Get client ID from hidden input
-                //console.log("Form Data:", formData); // Debugging
-                
-                $.ajax({
-                    url: "/api/status/save",
-                    type: "POST",
-                    //data: formData,
-                    contentType: "application/json",  // Send as JSON
-                    data: JSON.stringify(formData),  // Convert form data to JSON string
-                    success: function(response) {
-                        loadStatusRecords(clientId); // Refresh table with new data
-                        $("#status-form")[0].reset(); // Clear form after saving
-                    },
-                    error: function(xhr, status, error) {
-                        loadStatusRecords(0);
-                        console.error("Error saving data:", error);
-                    }
-                });
-            });
-
-                   
-            // Attach click event to button
-            $('#fetchButton').on('click', function() {
-                let id = $(this).data('id'); // Get ID from button attribute
-                jQuery.ajax({
-                    url: '/api/encounter',  // Replace with your backend route
-                    type: 'GET',
-                    data: { id: id },
-                    success: function(response) {
-                        console.log('Response:', response);
-                        $('#result_encounter').html(response.message);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                    }
-                });
-            });
-
-            // discharge
-            
-            // Populate the form when the client ID is provided
-            function populateDischargeForm(clientId) {
-                $.ajax({
-                    url: '/discharge/list', // Your backend endpoint to fetch client details
-                    type: 'GET',
-                    data: { client_id: clientId },
-                    success: function(response) {
-                        // Assuming response contains the necessary data to populate the fields
-                        console.log('Response:', response);
-                        $('#discharge_date').val(response.discharge_date ? response.discharge_date.String : "");
-                                                
-                        if (response.final_diagnosis === 1) {
-                            $('#final_diagnosis').prop('checked', true);
-                        } else {
-                            $('#final_diagnosis').prop('checked', false);
-                        }
-                        $('#final_diagnosis_other').val(response.final_diagnosis_other ? response.final_diagnosis_other.String : "");
-                        if (response.discharge_outcome === 1) {
-                            $('#discharge_outcome').prop('checked', true);
-                        } else {
-                            $('#discharge_outcome').prop('checked', false);
-                        }
-                        
-                        // Manually check/uncheck each checkbox based on the response values
-                        if (response.discharge_seq_heari === 1) {
-                            $('#discharge_seq_heari').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_heari').prop('checked', false);
-                        }
-
-                        if (response.discharge_seq_pregn === 1) {
-                            $('#discharge_seq_pregn').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_pregn').prop('checked', false);
-                        }
-
-                        if (response.discharge_seq_ocula === 1) {
-                            $('#discharge_seq_ocula').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_ocula').prop('checked', false);
-                        }
-
-                        if (response.discharge_seq_extre === 1) {
-                            $('#discharge_seq_extre').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_extre').prop('checked', false);
-                        }
-
-                        if (response.discharge_seq_arthr === 1) {
-                            $('#discharge_seq_arthr').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_arthr').prop('checked', false);
-                        }
-
-                        if (response.discharge_seq_neuro === 1) {
-                            $('#discharge_seq_neuro').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_neuro').prop('checked', false);
-                        }
-
-                        if (response.discharge_seq_others === 1) {
-                            $('#discharge_seq_others').prop('checked', true);
-                        } else {
-                            $('#discharge_seq_others').prop('checked', false);
-                        }                        
-
-
-
-                        $('#counselling_provided').val(response.counselling_provided.Valid ? response.counselling_provided.String : "");
-                        $('#discharging_officer').val(response.discharging_officer ? response.discharging_officer.String : "");
-                        $('#discharge_facility').val(response.discharge_facility ? response.discharge_facility.String : "");
-                        $('#discharge_seq_others_aza').val(response.discharge_seq_others_aza ? response.discharge_seq_others_aza.String : "");
-
-                        $('#discharge_id').val(response.discharge_id);
-                    },
-                    error: function() {
-                        alert("Error fetching discharge details.");
-                    }
-                });
-            }
-
-        // Handle form submission via AJAX
-        $('#discharge_Button').click(function(e) {
-            e.preventDefault();  // Prevent default form submission
-
-            var formData = {
-                discharge_date: $('#discharge_date').val(),
-                final_diagnosis: $('input[name="final_diagnosis"]:checked').val(),
-                final_diagnosis_other: $('#final_diagnosis_other').val(),
-                discharge_outcome: $('input[name="discharge_outcome"]:checked').val(),
-                discharge_seq_heari: $('#discharge_seq_heari').is(':checked') ? 1 : 0,
-                discharge_seq_pregn: $('#discharge_seq_pregn').is(':checked') ? 1 : 0,
-                discharge_seq_ocula: $('#discharge_seq_ocula').is(':checked') ? 1 : 0,
-                discharge_seq_extre: $('#discharge_seq_extre').is(':checked') ? 1 : 0,
-                discharge_seq_arthr: $('#discharge_seq_arthr').is(':checked') ? 1 : 0,
-                discharge_seq_neuro: $('#discharge_seq_neuro').is(':checked') ? 1 : 0,
-                discharge_seq_others: $('#discharge_seq_others').is(':checked') ? 1 : 0,
-                counselling_provided: $('#counselling_provided').val(),
-                discharging_officer: $('#discharging_officer').val(),
-                discharge_facility: $('#discharge_facility').val(),
-                discharge_seq_others_aza: $('#discharge_seq_others_aza').val(),
-                discharge_id: $('#discharge_id').val(),
-                client_id: $('#id').val()
-            };
-
-            $.ajax({
-                url: '/discharge/save',  // Your backend endpoint to save form data
-                type: 'POST',
-                //data: formData,
-                contentType: "application/json",  // Send as JSON
-                data: JSON.stringify(formData),  // Convert form data to JSON string
-                success: function(response) {
-                    alert('Discharge details saved successfully!');                    
-                },
-                error: function() {
-                    alert('Error submitting discharge details.');
+    function loadStatusRecords(clientId) {
+        $.ajax({
+            url: "/api/status/list",
+            type: "GET",
+            data: { client_id: clientId },
+            dataType: "json",
+            success: function(response) {
+                if (Array.isArray(response)) {
+                    populateStatusTable(response);
+                } else {
+                    //console.error("Unexpected response format");
+                    console.log(response);
+                    showError("Invalid response from server.");
                 }
-            });
+            },
+            error: function(xhr) {
+                if (xhr.status === 401) {
+                    alert("Session expired. Redirecting to login...");
+                    window.location.href = "/login";
+                } else {
+                    console.error("Fetch error:", xhr.responseText);
+                    showError("Failed to fetch status records. Please try again.");
+                }
+            }
         });
-
-        // Example: Call this function with the client ID to populate the form
-       
-        populateDischargeForm(clientId);
-
-            //end discharge
-        });
-
-    // Function to populate the table with data
-    function populateStatusTable(data) {
-        let rows = `
-                    <tr>
-                        <td></td>
-                        <td colspan="5"></td>
-                    </tr>`;
-
-        if (data.length > 0) {
-            data.forEach((item, index) => {
-                let status = item.ZeStatus;
-
-                rows += `
-                    <tr data-id="${status.status_id}">
-                        <td>${index + 1}</td>
-                        <td>${item.FName.Valid ? item.FName.String : ""} ${item.LName.Valid ? item.LName.String : ""}</td>
-                        <td>${status.status_date.Valid ? status.status_date.String : ""}</td>
-                        <td>${status.status.Valid ? status.status.String : ""}</td>
-                        <td>${status.status_notes.Valid ? status.status_notes.String : ""}</td>
-                        <td><button class="edit-btn btn btn-primary btn-sm">Edit</button></td>
-                    </tr>
-                `;
-            });
-        } else {
-            rows += `<tr><td colspan="6" class="text-center">No records found</td></tr>`;
-        }
-
-        $("#status-table-body").html(rows);
     }
 
+    loadStatusRecords(clientId);
 
-    // Function to display errors
-    function showError(message) {
-        $("#error-message").text(message).show();
-    }
+    $(document).on("click", ".edit-btn", function() {
+        let row = $(this).closest("tr");
+        $("#status_id").val(row.data("id"));
+        $("#status_date").val(row.find("td:nth-child(3)").text().trim());
+        $("#za_status").val(row.find("td:nth-child(4)").text().trim());
+        $("#status_notes").val(row.find("td:nth-child(5)").text().trim());
+    });
 
+    $(document).on("click", "#new-btn", function() {
+        $("#status-form")[0].reset();
+        $("#status_id").val("");
+    });
 
+    $(document).on("click", "#save-btn", function() {
+        let formData = {
+            status_id: $("#status_id").val(),
+            status_date: $("#status_date").val(),
+            status: $("#za_status").val(),
+            status_notes: $("#status_notes").val(),
+            client_id: clientId
+        };
 
-    document.addEventListener("DOMContentLoaded", function() {
-
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-
-        flatpickr(".datetimepicker", {
-            enableTime: false, 
-            dateFormat: "Y-m-d",
-            defaultDate: formattedDate,
-            disableMobile: true
+        $.ajax({
+            url: "/api/status/save",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            success: function() {
+                loadStatusRecords(clientId);
+                $("#status-form")[0].reset();
+            },
+            error: function(xhr) {
+                console.error("Error saving data:", xhr.responseText);
+                showError("Failed to save status record.");
+            }
         });
     });
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("caseForm"); // Replace with your form ID
-        const submitButton = document.getElementById("submitButton"); // Replace with your submit button ID
-        const save_cButton = document.getElementById("save_cButton");
-        const helpButton   = document.getElementById("helpButton");
-        const cancelButton = document.getElementById("cancelButton"); // Replace with your cancel button ID
-        
-        //console.log("Form Data as JSON:", formDataJSON);
+    $('#fetchButton').on('click', function() {
+        let id = $(this).data('id');
+        $.ajax({
+            url: '/api/encounter',
+            type: 'GET',
+            data: { id: id },
+            success: function(response) {
+                $('#result_encounter').html(response.message);
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    });
 
-        if (submitButton) {
-            submitButton.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default form submission
-                
-                if (validateForm()) {
-                    form.submit(); // Submit the form only if validation passes
-                } else {
-                    alert("Please fill out all required fields correctly.");
-                }
-            });
-        }
+    function populateDischargeForm(clientId) {
+        $.ajax({
+            url: '/discharge/list',
+            type: 'GET',
+            data: { client_id: clientId },
+            success: function(response) {
+                console.log('Response:', response);
 
-        if (cancelButton) {
-            cancelButton.addEventListener("click", function () {
-                window.location.href = "/cases"; // Replace with the correct URL
-            });
-        }
+                $('#discharge_date').val(response.discharge_date?.String || "");
+                $('#final_diagnosis').prop('checked', response.final_diagnosis === 1);
+                $('#final_diagnosis_other').val(response.final_diagnosis_other?.String || "");
+                $('#discharge_outcome').prop('checked', response.discharge_outcome === 1);
+                $('#discharge_seq_heari').prop('checked', response.discharge_seq_heari === 1);
+                $('#discharge_seq_pregn').prop('checked', response.discharge_seq_pregn === 1);
+                $('#discharge_seq_ocula').prop('checked', response.discharge_seq_ocula === 1);
+                $('#discharge_seq_extre').prop('checked', response.discharge_seq_extre === 1);
+                $('#discharge_seq_arthr').prop('checked', response.discharge_seq_arthr === 1);
+                $('#discharge_seq_neuro').prop('checked', response.discharge_seq_neuro === 1);
+                $('#discharge_seq_others').prop('checked', response.discharge_seq_others === 1);
+                $('#counselling_provided').val(response.counselling_provided?.String || "");
+                $('#discharging_officer').val(response.discharging_officer?.String || "");
+                $('#discharge_facility').val(response.discharge_facility?.String || "");
+                $('#discharge_seq_others_aza').val(response.discharge_seq_others_aza?.String || "");
+                $('#discharge_id').val(response.discharge_id);
+            },
+            error: function() {
+                alert("Error fetching discharge details.");
+            }
+        });
+    }
 
-        function validateForm() {
-            let isValid = true;
-            
-            return isValid;
-        }
+    $('#discharge_Button').click(function(e) {
+        e.preventDefault();
+        let formData = {
+            discharge_date: $('#discharge_date').val(),
+            final_diagnosis: $('#final_diagnosis').is(':checked') ? 1 : 0,
+            final_diagnosis_other: $('#final_diagnosis_other').val(),
+            discharge_outcome: $('#discharge_outcome').is(':checked') ? 1 : 0,
+            discharge_seq_heari: $('#discharge_seq_heari').is(':checked') ? 1 : 0,
+            discharge_seq_pregn: $('#discharge_seq_pregn').is(':checked') ? 1 : 0,
+            discharge_seq_ocula: $('#discharge_seq_ocula').is(':checked') ? 1 : 0,
+            discharge_seq_extre: $('#discharge_seq_extre').is(':checked') ? 1 : 0,
+            discharge_seq_arthr: $('#discharge_seq_arthr').is(':checked') ? 1 : 0,
+            discharge_seq_neuro: $('#discharge_seq_neuro').is(':checked') ? 1 : 0,
+            discharge_seq_others: $('#discharge_seq_others').is(':checked') ? 1 : 0,
+            counselling_provided: $('#counselling_provided').val(),
+            discharging_officer: $('#discharging_officer').val(),
+            discharge_facility: $('#discharge_facility').val(),
+            discharge_seq_others_aza: $('#discharge_seq_others_aza').val(),
+            discharge_id: $('#discharge_id').val(),
+            client_id: clientId
+        };
 
-        function getFormDataAsJSON(formElement) {
-            const formData = new FormData(formElement);
-            const jsonObject = {};
+        $.ajax({
+            url: '/discharge/save',
+            type: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            success: function() {
+                alert('Discharge details saved successfully!');
+            },
+            error: function() {
+                alert('Error submitting discharge details.');
+            }
+        });
+    });
 
-            formData.forEach((value, key) => {
-                jsonObject[key] = value;
-            });
+    populateDischargeForm(clientId);
+});
 
-            return jsonObject;
-        }
-    
-     });
-
+function showError(message) {
+    $("#error-message").text(message).show();
+}
 
 </script>
 

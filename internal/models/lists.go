@@ -58,6 +58,7 @@ type ClientEncounter struct {
 	EmployeeLname sql.NullString
 	EncounterDate sql.NullString
 	EncounterTime sql.NullString
+	ClinicalTeam  sql.NullString
 	ClientID      int
 }
 
@@ -177,7 +178,7 @@ func Statuses(ctx context.Context, db DB, flt string) ([]Status, error) {
 func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
 	// query
 	sqlstr := ` SELECT 
-					encounter_id, meta_name,employee_fname, employee_lname, encounter_date, encounter_time, client_id
+					encounter_id, meta_name,employee_fname, employee_lname, encounter_date, encounter_time, client_id, clinical_team
 				FROM encounter 
 				LEFT JOIN meta ON meta.meta_id = encounter.encounter_type
 				LEFT JOIN employee on employee.employee_id = encounter.managed_by `
@@ -203,7 +204,7 @@ func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter
 	for rows.Next() {
 		var e ClientEncounter
 		if err := rows.Scan(
-			&e.EncounterID, &e.EncounterType, &e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.EncounterTime, &e.ClientID,
+			&e.EncounterID, &e.EncounterType, &e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.EncounterTime, &e.ClientID, &e.ClinicalTeam,
 		); err != nil {
 			return nil, logerror(err)
 		}
@@ -222,7 +223,7 @@ func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter
 func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
 	// query
 	sqlstr := ` SELECT DISTINCT 
-					employee_fname, employee_lname, encounter_date, client_id
+					employee_fname, employee_lname, encounter_date, client_id, clinical_team
 				FROM encounter 
 				LEFT JOIN employee ON employee.employee_id = encounter.managed_by `
 	var args []interface{}
@@ -248,7 +249,7 @@ func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter
 	for rows.Next() {
 		var e ClientEncounter
 		if err := rows.Scan(
-			&e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.ClientID,
+			&e.EmployeeFname, &e.EmployeeLname, &e.EncounterDate, &e.ClientID, &e.ClinicalTeam,
 		); err != nil {
 			return nil, logerror(err)
 		}

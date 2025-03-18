@@ -149,6 +149,15 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row registration-input-row">    
+                        <div class="col-lg-12">
+                            <label class="col-sm-3 col-form-label col-form-label-sm" for="managed_by">Other Clinical Team Members</label>
+                            <div class="col-sm-9">
+                                <input class="form-control form-control-sm" value="{{ (index .Form 0).ClinicalTeam.String }}" id="clinical_team" name="clinical_team" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                    
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="vitals-tab" data-toggle="tab" href="#vitals" role="tab" aria-controls="vitals" aria-selected="true">Vitals</a>
@@ -1040,31 +1049,31 @@
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="bleeding">Bleeding:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "bleeding" "Bleeding" "" (index .FormChild2 0).Bleeding.Int64 1 }}
+                                            {{ GetOptionField "YN" "bleeding" "Bleeding" "" (index .FormChild1 0).Bleeding.Int64 1 }}                                            
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="shock">Shock:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "shock" "Shock" "" (index .FormChild2 0).Shock.Int64 1 }}
+                                            {{ GetOptionField "YN" "shock" "Shock" "" (index .FormChild1 0).Shock.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="meningitis">Meningitis:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "meningitis" "Meningitis" "" (index .FormChild2 0).Meningitis.Int64 1 }}
+                                            {{ GetOptionField "YN" "meningitis" "Meningitis" "" (index .FormChild1 0).Meningitis.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="confusion">Confusion:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "confusion" "Confusion" "" (index .FormChild2 0).Confusion.Int64 1 }}
+                                            {{ GetOptionField "YN" "confusion" "Confusion" "" (index .FormChild1 0).Confusion.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="seizure">Seizure:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "seizure" "Seizure" "" (index .FormChild2 0).Seizure.Int64 1 }}
+                                            {{ GetOptionField "YN" "seizure" "Seizure" "" (index .FormChild1 0).Seizure.Int64 1 }}
                                         </div>
                                     </div>
                                 </div>
@@ -1072,25 +1081,25 @@
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="coma">Coma (P/U in AVPU scoring) :</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "coma" "Coma (P/U in AVPU scoring) " "" (index .FormChild2 0).Coma.Int64 1 }}
+                                            {{ GetOptionField "YN" "coma" "Coma (P/U in AVPU scoring) " "" (index .FormChild1 0).Coma.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="bacteraemia">Bacteraemia:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "bacteraemia" "Bacteraemia" "" (index .FormChild2 0).Bacteraemia.Int64 1 }}
+                                            {{ GetOptionField "YN" "bacteraemia" "Bacteraemia" "" (index .FormChild1 0).Bacteraemia.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="hyperglycemia">Hyperglycemia:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "hyperglycemia" "Hyperglycemia" "" (index .FormChild2 0).Hyperglycemia.Int64 1 }}
+                                            {{ GetOptionField "YN" "hyperglycemia" "Hyperglycemia" "" (index .FormChild1 0).Hyperglycemia.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">
                                         <label class="col-sm-4 col-form-label col-form-label-sm" for="hypoglycemia">Hypoglycemia:</label>
                                         <div class="col-sm-6">
-                                            {{ GetOptionField "YN" "hypoglycemia" "Hypoglycemia" "" (index .FormChild2 0).Hypoglycemia.Int64 1 }}
+                                            {{ GetOptionField "YN" "hypoglycemia" "Hypoglycemia" "" (index .FormChild1 0).Hypoglycemia.Int64 1 }}
                                         </div>
                                     </div>
                                     <div class="row">

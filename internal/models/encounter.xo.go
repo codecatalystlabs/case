@@ -17,6 +17,7 @@ type Encounter struct {
 	ManagedBy     sql.NullInt64  `json:"managed_by"`     // managed_by
 	EnterOn       sql.NullTime   `json:"enter_on"`       // enter_on
 	EnterBy       sql.NullInt64  `json:"enter_by"`       // enter_by
+	ClinicalTeam  sql.NullString `json:"clinical_team"`  // clinical_team
 	// xo fields
 	_exists, _deleted bool
 }
@@ -42,13 +43,13 @@ func (e *Encounter) Insert(ctx context.Context, db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO public.encounter (` +
-		`encounter_type, encounter_time, client_id, encounter_date, managed_by, enter_on, enter_by` +
+		`encounter_type, encounter_time, client_id, encounter_date, managed_by, enter_on, enter_by, clinical_team` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
+		`$1, $2, $3, $4, $5, $6, $7, $8` +
 		`) RETURNING encounter_id`
 	// run
-	logf(sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy)
-	if err := db.QueryRowContext(ctx, sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy).Scan(&e.EncounterID); err != nil {
+	logf(sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.ClinicalTeam)
+	if err := db.QueryRowContext(ctx, sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.ClinicalTeam).Scan(&e.EncounterID); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -66,11 +67,11 @@ func (e *Encounter) Update(ctx context.Context, db DB) error {
 	}
 	// update with composite primary key
 	const sqlstr = `UPDATE public.encounter SET ` +
-		`encounter_type = $1, encounter_time = $2, client_id = $3, encounter_date = $4, managed_by = $5, enter_on = $6, enter_by = $7 ` +
-		`WHERE encounter_id = $8`
+		`encounter_type = $1, encounter_time = $2, client_id = $3, encounter_date = $4, managed_by = $5, enter_on = $6, enter_by = $7, clinical_team = $8 ` +
+		`WHERE encounter_id = $9`
 	// run
-	logf(sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.EncounterID)
-	if _, err := db.ExecContext(ctx, sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.EncounterID); err != nil {
+	logf(sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.ClinicalTeam, e.EncounterID)
+	if _, err := db.ExecContext(ctx, sqlstr, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.ClinicalTeam, e.EncounterID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -92,16 +93,16 @@ func (e *Encounter) Upsert(ctx context.Context, db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO public.encounter (` +
-		`encounter_id, encounter_type, encounter_time, client_id, encounter_date, managed_by, enter_on, enter_by` +
+		`encounter_id, encounter_type, encounter_time, client_id, encounter_date, managed_by, enter_on, enter_by, clinical_team` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
+		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
 		`)` +
 		` ON CONFLICT (encounter_id) DO ` +
 		`UPDATE SET ` +
-		`encounter_type = EXCLUDED.encounter_type, encounter_time = EXCLUDED.encounter_time, client_id = EXCLUDED.client_id, encounter_date = EXCLUDED.encounter_date, managed_by = EXCLUDED.managed_by, enter_on = EXCLUDED.enter_on, enter_by = EXCLUDED.enter_by `
+		`encounter_type = EXCLUDED.encounter_type, encounter_time = EXCLUDED.encounter_time, client_id = EXCLUDED.client_id, encounter_date = EXCLUDED.encounter_date, managed_by = EXCLUDED.managed_by, enter_on = EXCLUDED.enter_on, enter_by = EXCLUDED.enter_by, clinical_team = EXCLUDED.clinical_team `
 	// run
-	logf(sqlstr, e.EncounterID, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy)
-	if _, err := db.ExecContext(ctx, sqlstr, e.EncounterID, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy); err != nil {
+	logf(sqlstr, e.EncounterID, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.ClinicalTeam)
+	if _, err := db.ExecContext(ctx, sqlstr, e.EncounterID, e.EncounterType, e.EncounterTime, e.ClientID, e.EncounterDate, e.ManagedBy, e.EnterOn, e.EnterBy, e.ClinicalTeam); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -136,7 +137,7 @@ func (e *Encounter) Delete(ctx context.Context, db DB) error {
 func EncounterByEncounterID(ctx context.Context, db DB, encounterID int) (*Encounter, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`encounter_id, encounter_type, encounter_time, client_id, encounter_date, managed_by, enter_on, enter_by ` +
+		`encounter_id, encounter_type, encounter_time, client_id, encounter_date, managed_by, enter_on, enter_by, clinical_team ` +
 		`FROM public.encounter ` +
 		`WHERE encounter_id = $1`
 	// run
@@ -144,7 +145,7 @@ func EncounterByEncounterID(ctx context.Context, db DB, encounterID int) (*Encou
 	e := Encounter{
 		_exists: true,
 	}
-	if err := db.QueryRowContext(ctx, sqlstr, encounterID).Scan(&e.EncounterID, &e.EncounterType, &e.EncounterTime, &e.ClientID, &e.EncounterDate, &e.ManagedBy, &e.EnterOn, &e.EnterBy); err != nil {
+	if err := db.QueryRowContext(ctx, sqlstr, encounterID).Scan(&e.EncounterID, &e.EncounterType, &e.EncounterTime, &e.ClientID, &e.EncounterDate, &e.ManagedBy, &e.EnterOn, &e.EnterBy, &e.ClinicalTeam); err != nil {
 		return nil, logerror(err)
 	}
 	return &e, nil
