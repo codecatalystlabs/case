@@ -25,21 +25,15 @@ type FormData struct {
 }
 
 func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
 
-	CtxG = c
-	dbG = db
-
-	//id := c.Params("i") // Retrieve the "id" parameter
 	id, err := strconv.Atoi(c.Params("i"))
 	if err != nil {
 		log.Println(err.Error())
 	}
-	//uzer := models.User{}
-	var uzer models.User
 
+	var uzer models.User
 	uzer.UserEmployee.Valid = true
 	uzer.UserEmployee.Int64 = 0
 
@@ -47,14 +41,13 @@ func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 
 	if id > 0 {
 		u, er := models.UserByUserID(c.Context(), db, id)
-
 		if er == nil {
 			uzer = *u
 		}
-
 	} else {
 		id = 0
 	}
+
 	fmt.Println("Creating")
 	// Correct struct definition with semicolons
 	type funclist struct {
@@ -115,10 +108,10 @@ func HandlerUserForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	data.Form = uzer
 	data.FormChild1 = functions
 
-	return GenerateHTML(c, data, "form_user")
+	return GenerateHTML(c, db, data, "form_user")
 }
-func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 
+func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	id, er := strconv.Atoi(c.FormValue("id"))
 	if er != nil {
 		id = 0
@@ -131,7 +124,6 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 	}
 
 	if user.UserID == 0 {
-
 		user.UserPass = sql.NullString{String: models.Encrypt("123456"), Valid: true}
 		err := user.Insert(c.Context(), db)
 		if err != nil {
@@ -172,8 +164,6 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 		edit, err := strconv.ParseInt(c.FormValue("input_edit_"+m_nm), 10, 64)
 		exec, err := strconv.ParseInt(c.FormValue("input_execute_"+m_nm), 10, 64)
 
-		//fmt.Println(m_nm, ":", scope, "-", view, "-", add, "-", edit, "-", exec)
-
 		right := models.UserRight{}
 
 		right.UserID.Valid = true
@@ -205,16 +195,14 @@ func HandlerUserSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session
 				log.Println(err.Error())
 			}
 		}
-
 	}
 
 	urlx := "/users/new/" + strconv.Itoa(user.UserID)
-
 	return c.Redirect(urlx)
 }
 
 func HandlerUserList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	log.Println("starting user list")
+	fmt.Println("starting user list")
 
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
@@ -223,48 +211,41 @@ func HandlerUserList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.S
 	data.User = userName
 	data.Role = role
 
-	//
-	mysql := "SELECT user_id, user_name, CONCAT(employee_fname, ' ', employee_lname) AS  lab FROM users, employee Where users.user_employee = employee_id"
-	var args []interface{}
 	type userlist struct {
 		UserID   int
 		UserName string
 		Lab      string
 	}
 
+	mysql := `SELECT u.user_id, u.user_name, CONCAT(e.employee_fname, ' ', e.employee_lname) as lab FROM public.user u LEFT JOIN employee e ON u.user_employee=e.employee_id`
+
 	// Execute query
-	rows, err := db.QueryContext(c.Context(), mysql, args...)
+	rows, err := db.QueryContext(c.Context(), mysql)
 	if err != nil {
-		log.Println(err.Error())
+		fmt.Println(err.Error())
 	}
 	defer rows.Close()
 
-	// Slice to hold clients
+	// Slice to hold users
 	var users []userlist
 
 	// Iterate through rows
 	for rows.Next() {
 		var u userlist
-
-		if err := rows.Scan(
-			&u.UserID, &u.UserName, &u.Lab,
-		); err != nil {
+		if err := rows.Scan(&u.UserID, &u.UserName, &u.Lab); err != nil {
 			fmt.Println(err.Error())
 		}
-
 		users = append(users, u)
 	}
 
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
-			log.Println("error loading user list: ", err.Error())
+			fmt.Println("error loading user list: ", err.Error())
 		} else {
-			log.Println("error loading user list: ", err.Error())
+			fmt.Println("error loading user list: ", err.Error())
 		}
 	}
 
 	data.Form = users
-
-	//
-	return GenerateHTML(c, data, "list_users")
+	return GenerateHTML(c, db, data, "list_user")
 }

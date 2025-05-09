@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log/slog"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -16,8 +17,10 @@ func SetRoute(app *fiber.App, db *sql.DB, store *session.Store, sl *slog.Logger,
 	RouteHome(app, db, sl, store, config)
 	RouteVerify(app, db, sl, store, config)
 
-	// discharge verification route
+	// Add outbreak routes
+	RouteOutbreaks(app, db, sl, store, config)
 
+	// discharge verification route
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Next()
 	})
@@ -109,12 +112,11 @@ func RouteDischarge(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers
 }
 
 func RouteHome(app *fiber.App, db *sql.DB, sl *slog.Logger, store *session.Store, config handlers.Config) {
-
-	app.Get("/login", func(c *fiber.Ctx) error { return handlers.HandlerLoginForm(c, sl, store, config) })
+	app.Get("/login", func(c *fiber.Ctx) error { return handlers.HandlerLoginForm(c, db, sl, store, config) })
 	app.Post("/login", func(c *fiber.Ctx) error { return handlers.HandlerLoginSubmit(c, db, sl, store, config) })
 	app.Get("/logout", func(c *fiber.Ctx) error { return handlers.HandlerLoginOut(c, sl, store, config) })
-	app.Get("/forget", func(c *fiber.Ctx) error { return handlers.HandlerLoginForgot(c, sl, store, config) })
-	app.Get("/help", func(c *fiber.Ctx) error { return handlers.HandlerHelp(c, sl, store, config) })
+	app.Get("/forget", func(c *fiber.Ctx) error { return handlers.HandlerLoginForgot(c, db, sl, store, config) })
+	app.Get("/help", func(c *fiber.Ctx) error { return handlers.HandlerHelp(c, db, sl, store, config) })
 }
 
 func RouteVerify(app *fiber.App, db *sql.DB, sl *slog.Logger, store *session.Store, config handlers.Config) {
@@ -210,4 +212,24 @@ func RouteReports(v fiber.Router, db *sql.DB, sl *slog.Logger, config handlers.C
 	//+
 	v.Get("/view", func(c *fiber.Ctx) error { return reports.ReportView(c, db, sl, store, config) }) //+
 	v.Get("/", func(c *fiber.Ctx) error { return reports.ReportHome(c, db, sl, store, config) })
+}
+
+// Add this new function for outbreak routes
+func RouteOutbreaks(app *fiber.App, db *sql.DB, sl *slog.Logger, store *session.Store, config handlers.Config) {
+	// Public routes
+	app.Get("/outbreaks", func(c *fiber.Ctx) error { return handlers.HandlerOutbreakList(c, db, sl, store, config) })
+	app.Get("/outbreaks/new/:i", func(c *fiber.Ctx) error { return handlers.HandlerOutbreakForm(c, db, sl, store, config) })
+	app.Get("/outbreaks/edit/:i", func(c *fiber.Ctx) error { return handlers.HandlerOutbreakForm(c, db, sl, store, config) })
+	app.Post("/outbreaks/save", func(c *fiber.Ctx) error { return handlers.HandlerOutbreakSubmit(c, db, sl, store, config) })
+	app.Get("/outbreaks/close/:i", func(c *fiber.Ctx) error { return handlers.HandlerOutbreakClose(c, db, sl, store, config) })
+	app.Post("/outbreaks/select/:i", func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("i"))
+		if err != nil {
+			return c.Status(400).SendString("Invalid outbreak ID")
+		}
+		if err := handlers.SetSelectedOutbreak(c, store, id); err != nil {
+			return c.Status(500).SendString("Failed to select outbreak")
+		}
+		return c.SendStatus(200)
+	})
 }

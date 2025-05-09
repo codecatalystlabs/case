@@ -14,21 +14,15 @@ import (
 )
 
 func HandlerEmployeeForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
 
-	CtxG = c
-	dbG = db
-
-	//id := c.Params("i") // Retrieve the "id" parameter
 	id, err := strconv.Atoi(c.Params("i"))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	//uzer := models.User{}
-	var employee models.Employee
 
+	var employee models.Employee
 	employee.Facility.Valid = true
 	employee.Facility.Int64 = 0
 
@@ -36,11 +30,9 @@ func HandlerEmployeeForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 
 	if id > 0 {
 		u, er := models.EmployeeByEmployeeID(c.Context(), db, id)
-
 		if er == nil {
 			employee = *u
 		}
-
 	} else {
 		id = 0
 	}
@@ -50,10 +42,10 @@ func HandlerEmployeeForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 	data.Optionz = Get_Client_Optionz()
 	data.Form = employee
 
-	return GenerateHTML(c, data, "form_employee")
+	return GenerateHTML(c, db, data, "form_employee")
 }
-func HandlerEmployeeSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 
+func HandlerEmployeeSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	id, er := strconv.Atoi(c.FormValue("id"))
 	if er != nil {
 		id = 0
@@ -84,15 +76,11 @@ func HandlerEmployeeSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *ses
 	}
 
 	urlx := "/employees/new/" + strconv.Itoa(employee.EmployeeID)
-
 	return c.Redirect(urlx)
-
 }
+
 func HandlerEmployeeList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	fmt.Println("starting employee list")
-
-	CtxG = c
-	dbG = db
 
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
@@ -100,7 +88,7 @@ func HandlerEmployeeList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 	data := NewTemplateData(c, store)
 	data.User = userName
 	data.Role = role
-	//
+
 	mysql := `SELECT ` +
 		`employee_id, employee_fname, employee_lname, employee_sex, employee_email, employee_phone, employee_cadre, facility ` +
 		`FROM public.employee `
@@ -120,13 +108,11 @@ func HandlerEmployeeList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 	// Iterate through rows
 	for rows.Next() {
 		var e models.Employee
-
 		if err := rows.Scan(
 			&e.EmployeeID, &e.EmployeeFname, &e.EmployeeLname, &e.EmployeeSex, &e.EmployeeEmail, &e.EmployeePhone, &e.EmployeeCadre, &e.Facility,
 		); err != nil {
 			fmt.Println(err.Error())
 		}
-
 		employees = append(employees, e)
 	}
 
@@ -139,7 +125,5 @@ func HandlerEmployeeList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessi
 	}
 
 	data.Form = employees
-
-	//
-	return GenerateHTML(c, data, "list_employee")
+	return GenerateHTML(c, db, data, "list_employee")
 }

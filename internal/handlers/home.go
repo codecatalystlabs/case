@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"case/internal/models"
-	"case/internal/security"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -12,33 +11,33 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// HandlerHome handles the home page
 func HandlerHome(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-
-	fmt.Println("starting home")
-
-	userID, userName := GetUser(c, sl, store)
-	role := security.GetRoles(userID, "admin")
-
-	data := NewTemplateData(c, store)
-	data.User = userName
-	data.Role = role
-	sID := fmt.Sprintf("%d", userID)
-	metums, _ := models.Metums(c.Context(), db, " user_id = "+sID) //meta_category = 3 AND
-
-	zamenu := ""
-	for _, menu := range metums {
-		zamenu = zamenu + "<a href='" + menu.MetaLink.String + "' class='menu-item'>" + menu.MetaDescription.String + "</a>"
+	// Check if an outbreak is selected
+	selectedOutbreakID := GetSelectedOutbreak(c, store)
+	if selectedOutbreakID == 0 {
+		// If no outbreak is selected, redirect to outbreak selection
+		return c.Redirect("/outbreaks")
 	}
 
-	data.Form = metums
-	data.Menuz = zamenu
+	// Get the selected outbreak
+	outbreak, err := models.OutbreakByID(c.Context(), db, selectedOutbreakID)
+	if err != nil {
+		sl.Error("Failed to get selected outbreak: " + err.Error())
+		return c.Redirect("/outbreaks")
+	}
 
-	fmt.Println("loading home page")
-	return GenerateHTML(c, data, "home")
+	// Get the current user
+	_, username := GetUser(c, sl, store)
 
+	data := NewTemplateData(c, store)
+	data.User = username
+	data.Form = outbreak
+
+	return GenerateHTML(c, db, data, "home")
 }
 
-func HandlerLoginForm(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
+func HandlerLoginForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 
 	sess, err := store.Get(c)
 
@@ -52,7 +51,7 @@ func HandlerLoginForm(c *fiber.Ctx, sl *slog.Logger, store *session.Store, confi
 
 	// load page
 	data := map[string]string{"Title": "Login Page"}
-	return GenerateHTML(c, data, "login")
+	return GenerateHTML(c, db, data, "login")
 }
 
 func HandlerLoginSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
@@ -124,7 +123,7 @@ func HandlerLoginOut(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config
 	return c.Redirect("/login")
 }
 
-func HandlerLoginForgot(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
+func HandlerLoginForgot(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 
 	sess, err := store.Get(c)
 	if err == nil {
@@ -135,12 +134,11 @@ func HandlerLoginForgot(c *fiber.Ctx, sl *slog.Logger, store *session.Store, con
 	}
 
 	// load page
-
 	data := map[string]string{"Title": "Forgot Password and/or username"}
-	return GenerateHTML(c, data, "forgot")
+	return GenerateHTML(c, db, data, "forgot")
 }
 
-func HandlerHelp(c *fiber.Ctx, sl *slog.Logger, store *session.Store, config Config) error {
+func HandlerHelp(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	data := map[string]string{"Title": "Help Page"}
-	return GenerateHTML(c, data, "help")
+	return GenerateHTML(c, db, data, "help")
 }

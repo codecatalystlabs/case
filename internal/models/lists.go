@@ -175,16 +175,18 @@ func Statuses(ctx context.Context, db DB, flt string) ([]Status, error) {
 
 }
 
-func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
+func ClientEncounters(ctx context.Context, db DB, flt string, outbreakID int) ([]ClientEncounter, error) {
 	// query
 	sqlstr := ` SELECT 
-					encounter_id, meta_name,employee_fname, employee_lname, encounter_date, encounter_time, client_id, clinical_team
+					encounter_id, meta_name, employee_fname, employee_lname, encounter_date, encounter_time, client_id, clinical_team
 				FROM encounter 
 				LEFT JOIN meta ON meta.meta_id = encounter.encounter_type
-				LEFT JOIN employee on employee.employee_id = encounter.managed_by `
+				LEFT JOIN employee on employee.employee_id = encounter.managed_by 
+				WHERE encounter.outbreak_id = $1`
 	var args []interface{}
+	args = append(args, outbreakID)
 	if flt != "" {
-		sqlstr += " WHERE " + flt
+		sqlstr += " AND " + flt
 	}
 
 	// Log the query
@@ -217,21 +219,21 @@ func ClientEncounters(ctx context.Context, db DB, flt string) ([]ClientEncounter
 	}
 
 	return clientencounters, nil
-
 }
 
-func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter, error) {
+func ClientEncounterz(ctx context.Context, db DB, flt string, outbreakID int) ([]ClientEncounter, error) {
 	// query
 	sqlstr := ` SELECT DISTINCT 
 					employee_fname, employee_lname, encounter_date, client_id, clinical_team
 				FROM encounter 
-				LEFT JOIN employee ON employee.employee_id = encounter.managed_by `
+				LEFT JOIN employee ON employee.employee_id = encounter.managed_by 
+				WHERE encounter.outbreak_id = $1`
 	var args []interface{}
+	args = append(args, outbreakID)
 	if flt != "" {
-		sqlstr += " WHERE " + flt
+		sqlstr += " AND " + flt
 	}
 
-	//sqlstr += " GROUP BY employee_fname, employee_lname, encounter_date, client_id"
 	// Log the query
 	logf(sqlstr)
 
@@ -262,7 +264,6 @@ func ClientEncounterz(ctx context.Context, db DB, flt string) ([]ClientEncounter
 	}
 
 	return clientencounters, nil
-
 }
 
 func ClinicalByEncounterID(ctx context.Context, db DB, encounterID int) (*Clinical, error) {

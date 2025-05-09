@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -16,9 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
-var CtxG *fiber.Ctx
-var dbG *sql.DB
-
 func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	DoZaLogging("INFO", "Starting Client form", nil)
 
@@ -26,8 +22,6 @@ func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	role := security.GetRoles(userID, "admin")
 	id, err := strconv.Atoi(c.Params("i"))
 	data := NewTemplateData(c, store)
-
-	//fmt.Println("za id: ", id)
 
 	var client models.Client
 
@@ -43,7 +37,17 @@ func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 		data.IsIDPos = true
 	}
 
-	cE, err := models.ClientEncounterz(c.Context(), db, "client_id="+strconv.Itoa(id))
+	// Get outbreak ID from session
+	sess, err := store.Get(c)
+	if err != nil {
+		return c.Status(400).SendString("Failed to get session")
+	}
+	outbreakID := sess.Get("outbreak_id")
+	if outbreakID == nil {
+		return c.Status(400).SendString("No outbreak selected")
+	}
+
+	cE, err := models.ClientEncounterz(c.Context(), db, "client_id="+strconv.Itoa(id), outbreakID.(int))
 	if err != nil {
 		DoZaLogging("ERROR", "Failed to get encounters", err)
 	}
@@ -61,8 +65,9 @@ func HandlerCasesForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	data.FormChild2 = st
 
 	DoZaLogging("INFO", "Load Client form", err)
-	return GenerateHTML(c, data, "form_patients")
+	return GenerateHTML(c, db, data, "form_patients")
 }
+
 func HandlerCasesSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 
 	id, er := strconv.Atoi(c.FormValue("id"))
@@ -154,10 +159,9 @@ func HandlerCasesSubmit(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *sessio
 
 	return c.Redirect(urlx)
 }
+
 func HandlerCasesList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
 	fmt.Println("starting case list")
-	CtxG = c
-	dbG = db
 
 	userID, userName := GetUser(c, sl, store)
 	role := security.GetRoles(userID, "admin")
@@ -167,12 +171,12 @@ func HandlerCasesList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	data.Role = role
 
 	fmt.Println("loading case list page")
-	//
+
 	facility := GetCurrentFacility(c, db, sl, store)
 	scope := GetDBInt("user_right", "function_scope", "", "user_id= "+strconv.Itoa(userID), 0)
 
 	filter := ""
-	if scope == 15 {
+	if scope == 15 { // Full access to all facilities
 		filter = ""
 	} else {
 		if facility > 0 {
@@ -181,7 +185,6 @@ func HandlerCasesList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 	}
 
 	clients, err := models.Clients(c.Context(), db, filter)
-
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			fmt.Println("error loading case list: ", err.Error())
@@ -192,166 +195,117 @@ func HandlerCasesList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.
 
 	data.Form = clients
 
-	//
-	return GenerateHTML(c, data, "list_patients")
+	return GenerateHTML(c, db, data, "list_patients")
 }
 
 func HandlerCaseEncounterForm(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
-	fmt.Println("starting case encounter form")
-
-	CtxG = c
-	dbG = db
-
-	userID, userName := GetUser(c, sl, store)
-	role := security.GetRoles(userID, "admin")
-
-	id, er := strconv.Atoi(c.Params("i"))
-	if er != nil {
-		id = 0
+	// Get client ID from query parameter
+	clientIDStr := c.Query("client_id")
+	if clientIDStr == "" {
+		return c.Status(400).SendString("Client ID is required")
 	}
 
-	var client *models.Client
-	client = &models.Client{}
-	if id > 0 {
-		client, _ = models.ClientByID(c.Context(), db, id)
-	}
-
-	data := NewTemplateData(c, store)
-
-	data.User = userName
-	data.Role = role
-	data.Optionz = Get_Client_Optionz()
-
-	encounters := make([]models.Encounter, 0, 3) // Preallocating memory for efficiency
-	clinicals := make([]models.Clinical, 0, 3)
-	vitals := make([]models.Vital, 0, 3)
-	labs := make([]models.Lab, 0, 3)
-	treats := make([]models.Treatment, 0, 3)
-
-	numbers := make([]int, 31) // Create a slice of length 31 (0 to 30)
-	for range numbers {
-
-		encounter := models.Encounter{}
-		clinical := models.Clinical{}
-		vital := models.Vital{}
-		lab := models.Lab{}
-		treat := models.Treatment{}
-
-		encounter.ClientID.Valid = true
-		encounter.ClientID.Int64 = 0
-
-		clinical.EncounterID.Valid = true
-		clinical.EncounterID.Int64 = 0
-
-		vital.EncounterID.Valid = true
-		vital.EncounterID.Int64 = 0
-
-		lab.EncounterID.Valid = true
-		lab.EncounterID.Int64 = 0
-
-		treat.EncounterID.Valid = true
-		treat.EncounterID.Int64 = 0
-
-		encounter.ClientID = sql.NullInt64{Int64: int64(client.ID), Valid: true}
-		encounter.EncounterID = 0
-
-		encounters = append(encounters, encounter)
-
-		clinical.EncounterID.Int64 = int64(encounter.EncounterID)
-		vital.EncounterID.Int64 = int64(encounter.EncounterID)
-		lab.EncounterID.Int64 = int64(encounter.EncounterID)
-
-		labs = append(labs, lab)
-		vitals = append(vitals, vital)
-		clinicals = append(clinicals, clinical)
-		treats = append(treats, treat)
-	}
-
-	//enc_date := c.Params("j")
-	encDate := c.Query("dte")
-
-	// Define the query with placeholders
-	query := "SELECT encounter_id FROM encounter WHERE client_id = $1 AND encounter_date = $2 ORDER BY encounter_id ASC"
-
-	// Execute the query safely using parameterized arguments
-	rows, err := db.QueryContext(c.Context(), query, client.ID, encDate)
+	// Convert client ID to int
+	clientID, err := strconv.Atoi(clientIDStr)
 	if err != nil {
-		log.Println("Error executing query:", err)
+		return c.Status(400).SendString("Invalid client ID")
 	}
-	defer rows.Close()
 
-	if err == nil {
-		fmt.Println("Inside the database")
-		i := 0
-		//encounters := []models.Encounter{}
-		for rows.Next() {
-			encounter_id := 0
-			err = rows.Scan(&encounter_id)
-
-			encounter := models.Encounter{}
-			clinical := models.Clinical{}
-			vital := models.Vital{}
-			lab := models.Lab{}
-			treat := models.Treatment{}
-
-			// load encounter data
-
-			enc, er := models.EncounterByEncounterID(c.Context(), db, encounter_id)
-			if er == nil {
-				encounter = *enc
-				clinical.EncounterID.Int64 = int64(encounter.EncounterID)
-				vital.EncounterID.Int64 = int64(encounter.EncounterID)
-				lab.EncounterID.Int64 = int64(encounter.EncounterID)
-				treat.EncounterID.Int64 = int64(encounter.EncounterID)
-
-				cl, er := models.ClinicalByEncounterID(c.Context(), db, encounter_id)
-				if er == nil {
-					clinical = *cl
-				}
-				vt, er := models.VitalByEncounterID(c.Context(), db, encounter_id)
-				if er == nil {
-					vital = *vt
-				}
-
-				l, er := models.LabByEncounterID(c.Context(), db, encounter_id)
-				if er == nil {
-					lab = *l
-				}
-
-				t, er := models.TreatmentByEncounterID(c.Context(), db, encounter_id)
-				if er == nil {
-					treat = *t
-				}
-			}
-			// end encounter data laod
-			encounters[i] = encounter
-			vitals[i] = vital
-			clinicals[i] = clinical
-			labs[i] = lab
-			treats[i] = treat
-			i++
-			if i == 3 {
-				break
-			}
-		}
-	} else {
-		fmt.Println("Error")
+	// Get outbreak ID from session
+	sess, err := store.Get(c)
+	if err != nil {
+		return c.Status(400).SendString("Failed to get session")
 	}
-	defer rows.Close()
+	outbreakID := sess.Get("outbreak_id")
+	if outbreakID == nil {
+		return c.Status(400).SendString("No outbreak selected")
+	}
 
-	data.Form = encounters
-	data.FormRef = client
-	//fmt.Println(vitals)
-	data.FormChild1 = clinicals
-	data.FormChild2 = vitals
-	data.FormChild3 = labs
-	data.FormChild4 = treats
+	// Get encounter date from query parameter
+	encounterDate := c.Query("encounter_date")
+	if encounterDate == "" {
+		return c.Status(400).SendString("Encounter date is required")
+	}
 
-	fmt.Println("loading case encounter form page")
-	return GenerateHTML(c, data, "form_encounters")
+	// Get encounters for this client and date
+	encounters, err := models.ClientEncounters(c.Context(), db, fmt.Sprintf("client_id = %d AND encounter_date = '%s'", clientID, encounterDate), outbreakID.(int))
+	if err != nil {
+		sl.Error("Failed to get encounters", "error", err)
+		return c.Status(500).SendString("Failed to get encounters")
+	}
+
+	// Get client details
+	client, err := models.ClientByID(c.Context(), db, clientID)
+	if err != nil {
+		sl.Error("Failed to get client", "error", err)
+		return c.Status(500).SendString("Failed to get client")
+	}
+
+	data := fiber.Map{
+		"Client":     client,
+		"Encounters": encounters,
+		"Date":       encounterDate,
+	}
+
+	return GenerateHTML(c, db, data, "form_case_encounter")
+}
+
+func HandlerCaseEncounterList(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config Config) error {
+	// Get client ID from query parameter
+	clientIDStr := c.Query("client_id")
+	if clientIDStr == "" {
+		return c.Status(400).SendString("Client ID is required")
+	}
+
+	// Convert client ID to int
+	clientID, err := strconv.Atoi(clientIDStr)
+	if err != nil {
+		return c.Status(400).SendString("Invalid client ID")
+	}
+
+	// Get outbreak ID from session
+	sess, err := store.Get(c)
+	if err != nil {
+		return c.Status(400).SendString("Failed to get session")
+	}
+	outbreakID := sess.Get("outbreak_id")
+	if outbreakID == nil {
+		return c.Status(400).SendString("No outbreak selected")
+	}
+
+	// Get encounters for this client
+	encounters, err := models.ClientEncounterz(c.Context(), db, fmt.Sprintf("client_id = %d", clientID), outbreakID.(int))
+	if err != nil {
+		sl.Error("Failed to get encounters", "error", err)
+		return c.Status(500).SendString("Failed to get encounters")
+	}
+
+	// Get client details
+	client, err := models.ClientByID(c.Context(), db, clientID)
+	if err != nil {
+		sl.Error("Failed to get client", "error", err)
+		return c.Status(500).SendString("Failed to get client")
+	}
+
+	data := fiber.Map{
+		"Client":     client,
+		"Encounters": encounters,
+	}
+
+	return GenerateHTML(c, db, data, "list_case_encounter")
 }
 
 func saveEncounter(c *fiber.Ctx, db *sql.DB, userID int, cid, dte string) (int, int, int) {
+	// Get selected outbreak from session
+	store := session.New()
+	sess, err := store.Get(c)
+	if err != nil {
+		return 0, 0, 0
+	}
+	outbreakID := sess.Get("selected_outbreak")
+	if outbreakID == nil {
+		return 0, 0, 0
+	}
 
 	var z int
 	idx := []int{0, 1, 2}
@@ -371,6 +325,7 @@ func saveEncounter(c *fiber.Ctx, db *sql.DB, userID int, cid, dte string) (int, 
 			EncounterDate: ParseNullString(dte),
 			ManagedBy:     ParseNullInt(c.FormValue("managed_by")),
 			ClinicalTeam:  ParseNullString(c.FormValue("clinical_team")),
+			OutbreakID:    sql.NullInt64{Int64: int64(outbreakID.(int)), Valid: true},
 		}
 
 		if id == 0 {
@@ -391,7 +346,6 @@ func saveEncounter(c *fiber.Ctx, db *sql.DB, userID int, cid, dte string) (int, 
 			}
 		}
 		idx[k] = encounter.EncounterID
-
 	}
 
 	return idx[0], idx[1], idx[2]

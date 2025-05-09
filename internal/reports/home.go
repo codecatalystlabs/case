@@ -19,7 +19,7 @@ func ReportHome(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store,
 
 	// load page
 	data := map[string]string{"Title": "Login Page", "UserID": userName}
-	return handlers.GenerateHTML(c, data, "reports")
+	return handlers.GenerateHTML(c, db, data, "reports")
 }
 
 func ReportView(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store, config handlers.Config) error {
@@ -35,7 +35,7 @@ func ReportView(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store,
 	data.Form = getClinicalSummary(c, db)
 	// load page
 
-	return handlers.GenerateHTML(c, data, "reportview")
+	return handlers.GenerateHTML(c, db, data, "reportview")
 }
 
 func getClinicalSummary(c *fiber.Ctx, db *sql.DB) map[string]string {

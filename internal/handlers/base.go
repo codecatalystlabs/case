@@ -22,6 +22,12 @@ import (
 	"github.com/gorilla/schema"
 )
 
+// Global variables
+var (
+	CtxG *fiber.Ctx
+	dbG  *sql.DB
+)
+
 type Config struct {
 	Address      string `json:"Port"`
 	ReadTimeout  int64  `json:"ReadTimeout"`
@@ -68,15 +74,21 @@ func NewTemplateData(c *fiber.Ctx, store *session.Store) *TemplateData {
 // Initialize a template.FuncMap object and store it in a global variable. This is
 // essentially a string-keyed map which acts as a lookup between the names of our
 // custom template functions and the functions themselves.
-var functions = template.FuncMap{
-	"humanDate":            HumanDate,
-	"humanDateTime":        HumanDateTime,
-	"IsNullStringEmpty":    IsNullStringEmpty,
-	"GetClientOptionLabel": GetClientOptionLabel,
-	"seq":                  Seq,
-	"GetOptionField":       GetOptionField,
-	"GetDBOptions":         GetDBOptions,
-	"GetDBLabel":           GetDBLabel,
+func CreateTemplateFunctions(c *fiber.Ctx, db *sql.DB) template.FuncMap {
+	return template.FuncMap{
+		"humanDate":            HumanDate,
+		"humanDateTime":        HumanDateTime,
+		"IsNullStringEmpty":    IsNullStringEmpty,
+		"GetClientOptionLabel": GetClientOptionLabel,
+		"seq":                  Seq,
+		"GetOptionField":       GetOptionField,
+		"GetDBOptions": func(table, cat, deflt, fld_name, fld_lab string, deflt_int int64) string {
+			return GetDBOptions(c, db, table, cat, deflt, fld_name, fld_lab, deflt_int)
+		},
+		"GetDBLabel": func(table, namesFld, indexFld string, indexID int64) string {
+			return GetDBLabel(c, db, table, namesFld, indexFld, indexID)
+		},
+	}
 }
 
 func HumanDate(t time.Time) string {
@@ -100,14 +112,17 @@ func IsNullStringEmpty(nullable sql.NullString) bool {
 }
 
 // GenerateHTML renders an HTML template with given data
-func GenerateHTML(c *fiber.Ctx, zdata interface{}, filenames ...string) error {
+func GenerateHTML(c *fiber.Ctx, db *sql.DB, zdata interface{}, filenames ...string) error {
 	var files []string
+	// Always include the layout template first
+	files = append(files, GetPath("../../ui/html/layout.html"))
+	// Then add the requested templates
 	for _, file := range filenames {
 		files = append(files, GetPath(fmt.Sprintf("../../ui/html/%s.html", file)))
 	}
 
 	// Parse templates using the global functions variable
-	templates, err := template.New("").Funcs(functions).ParseFiles(files...)
+	templates, err := template.New("").Funcs(CreateTemplateFunctions(c, db)).ParseFiles(files...)
 	if err != nil {
 		return c.Status(500).SendString("Template parsing error: " + err.Error())
 	}
@@ -440,42 +455,35 @@ func DoZaLogging(typ, msg string, er error) {
 }
 
 func GetOptionField(table, field, labs, defaultString string, defaultvalue, whole int64) string {
-	zaField := ""
 	zaDefa1 := ""
 	zaDefa2 := ""
 	zaDefa3 := ""
 	optionz := ""
 
 	if table == "facility" {
-
-		//zaField = GetDBOptions("site", "", "", field, labs, defaultvalue)
-
 		if defaultvalue == 1 {
 			zaDefa1 = "selected"
 		}
-
 		if defaultvalue == 2 {
 			zaDefa2 = "selected"
 		}
+		if defaultvalue == 3 {
+			zaDefa3 = "selected"
+		}
 
 		optionz = `<option value=""> -- select -- </option>
-						<option value="1" ` + zaDefa1 + `>Mulago ETU</option>
-						<option value="2" ` + zaDefa2 + `>Mbale ETU</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-						` + optionz + `
-				      </select>`
-
+					<option value="1" ` + zaDefa1 + `>Mulago ETU</option>
+					<option value="2" ` + zaDefa2 + `>Mbale ETU</option>
+					<option value="3" ` + zaDefa3 + `>Fort Portal ETU</option>`
 	}
 
 	if table == "Status" {
 		if defaultString == "Suspect" {
 			zaDefa1 = "selected"
 		}
-
 		if defaultString == "Case" {
 			zaDefa2 = "selected"
 		}
-
 		if defaultString == "Other" {
 			zaDefa3 = "selected"
 		}
@@ -484,188 +492,127 @@ func GetOptionField(table, field, labs, defaultString string, defaultvalue, whol
 					<option value="Suspect" ` + zaDefa1 + `>Suspect</option>
 					<option value="Case" ` + zaDefa2 + `>Case</option>
 					<option value="Other" ` + zaDefa3 + `>Other</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "pos" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Pos</option>
-					<option value="2" ` + zaDefa2 + `>Neg</option>
-					<option value="3"  ` + zaDefa3 + `>ND</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "po" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Pos</option>
-					<option value="2" ` + zaDefa2 + `>Neg</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "posx" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Pos</option>
-					<option value="2" ` + zaDefa2 + `>Neg</option>
-					<option value="3"  ` + zaDefa3 + `>Indeterminate</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "yn" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Yes</option>
-					<option value="2" ` + zaDefa2 + `>No</option>`
-
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "YN" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Yes</option>
-					<option value="2" ` + zaDefa2 + `>No</option>
-					<option value="3" ` + zaDefa3 + `>Unknown</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "e_rdt" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Not Done</option>
-					<option value="2" ` + zaDefa2 + `>Oraquick</option>
-					<option value="3" ` + zaDefa3 + `>Others</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "blood" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>ND</option>
-					<option value="2" ` + zaDefa2 + `>Arterial</option>
-					<option value="3" ` + zaDefa3 + `>Venous</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
-	}
-
-	if table == "e_pcr" {
-		if defaultvalue == 1 {
-			zaDefa1 = "selected"
-		}
-
-		if defaultvalue == 2 {
-			zaDefa2 = "selected"
-		}
-
-		if defaultvalue == 3 {
-			zaDefa3 = "selected"
-		}
-
-		optionz = `<option value=""> -- select -- </option>
-					<option value="1" ` + zaDefa1 + `>Not Done</option>
-					<option value="2" ` + zaDefa2 + `>GeneXpert</option>
-					<option value="3" ` + zaDefa3 + `>Others</option>`
-		zaField = `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
-					` + optionz + `
-			      </select>`
 	}
 
 	if whole == 1 {
-		return zaField
+		return `<select class="form-control-sm patient-input form-select" name="` + field + `" id="` + field + `" aria-label="` + labs + `">
+				` + optionz + `
+				</select>`
 	}
 	return optionz
 }
 
+// GetClientOptionLabel returns the label for a given option key
+func GetClientOptionLabel(arrayKey, mapKey string) string {
+	options := Get_Client_Optionz()
+	if subMap, exists := options[arrayKey]; exists {
+		if label, found := subMap[mapKey]; found {
+			return label
+		}
+	}
+	return ""
+}
+
+// GetDBOptions returns HTML select options for database values
+func GetDBOptions(c *fiber.Ctx, db *sql.DB, table, cat, deflt, fld_name, fld_lab string, deflt_int int64) string {
+	sql := ""
+	rtn := ""
+	switch table {
+	case "Employee":
+		sql = "SELECT employee_id as code, CONCAT(employee_fname, ' ', employee_lname) AS lab FROM public.employee"
+	case "function":
+		sql = "SELECT function_id as code, function_name as lab FROM public.function"
+	case "site":
+		sql = "SELECT facility_id as code, facility_name as lab FROM public.facility"
+	case "test":
+		// Handle test case
+	case "meta":
+		sql = "Select meta_id as code, meta_name as lab from meta, meta_category WHERE meta.meta_category=meta_category.meta_category_id AND meta_category_name='" + cat + "'"
+	}
+
+	res, er := models.GetFields(c.Context(), db, sql)
+	if er != nil {
+		log.Println("Error getting fields:", er)
+		return ""
+	}
+
+	i := 0
+	for _, values := range res {
+		if deflt == "" {
+			zvalue, _ := strconv.ParseInt(values[0], 10, 64)
+			if zvalue == deflt_int {
+				rtn = rtn + fmt.Sprintf(`<option value="%s" selected>%s</option>`, values[0], values[1])
+			} else {
+				rtn = rtn + fmt.Sprintf(`<option value="%s">%s</option>`, values[0], values[1])
+			}
+		} else {
+			if values[0] == deflt {
+				rtn = rtn + fmt.Sprintf(`<option value="%s" selected>%s</option>`, values[0], values[1])
+			} else {
+				rtn = rtn + fmt.Sprintf(`<option value="%s">%s</option>`, values[0], values[1])
+			}
+		}
+		i++
+	}
+
+	addString := ""
+	if i > 1 {
+		addString = `<option value=""> -- </option>`
+	}
+
+	return `<select class="form-control-sm patient-input form-select" name="` + fld_name + `" id="` + fld_name + `" aria-label="` + fld_lab + `">
+			` + addString + rtn + `
+			</select>`
+}
+
+// GetDBLabel returns the label for a database value
+func GetDBLabel(c *fiber.Ctx, db *sql.DB, table, namesFld, indexFld string, indexID int64) string {
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", namesFld, table, indexFld)
+	var label string
+	err := db.QueryRowContext(c.Context(), query, indexID).Scan(&label)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No rows found for ID:", indexID)
+			return ""
+		}
+		log.Println("Error executing query:", err)
+		return ""
+	}
+	return label
+}
+
+// Get_Client_Optionz returns a map of client options
+func Get_Client_Optionz() map[string]map[string]string {
+	opt := make(map[string]map[string]string)
+	opt["sex"] = map[string]string{"": " -- ", "1": "Male", "2": "Female"}
+	opt["sex2"] = map[string]string{"": " -- ", "Male": "Male", "Female": "Female"}
+	opt["occup"] = map[string]string{"": " -- ", "1": "Healthcare worker", "2": "Non-Healthcare worker"}
+	opt["yn"] = map[string]string{"": " -- ", "1": "Yes", "2": "No"}
+	opt["yn_extra"] = map[string]string{"": " -- ", "1": "Yes", "2": "No", "3": "Unknown"}
+	opt["marital"] = map[string]string{"": " -- ",
+		"1": "Married",
+		"2": "Cohabiting",
+		"3": "Widowed",
+		"4": "Separated",
+		"5": "Divorced",
+		"6": "Single",
+	}
+	opt["nationality"] = map[string]string{"": " -- ", "1": "Ugandan", "2": "EAC", "3": "Other"}
+	opt["ethnicity"] = map[string]string{"": " -- ", "1": "Black", "2": "Other"}
+	opt["mental"] = map[string]string{"": " -- ", "a": "A", "v": "V", "p": "P", "u": "U"}
+	opt["preg"] = map[string]string{"": " -- ", "1": "Yes", "2": "No", "3": "ND"}
+	opt["ward"] = map[string]string{"": " -- ", "1": "Ward", "2": "ICU"}
+	opt["result1"] = map[string]string{"": " -- ", "1": "Pos", "2": "Neg", "3": "indeterminate"}
+	opt["result2"] = map[string]string{"": " -- ", "1": "Pos", "2": "Neg", "3": "ND"}
+	return opt
+}
+
+// GetUser returns the current user ID and username
 func GetUser(c *fiber.Ctx, sl *slog.Logger, store *session.Store) (int, string) {
 	sess, err := store.Get(c)
 	if err != nil {
 		sl.Info("Session error")
+		return 0, ""
 	}
 
 	userID, ok := sess.Get("user").(int)
@@ -683,155 +630,49 @@ func GetUser(c *fiber.Ctx, sl *slog.Logger, store *session.Store) (int, string) 
 	return userID, username
 }
 
+// GetCurrentFacility returns the current facility ID for the user
 func GetCurrentFacility(c *fiber.Ctx, db *sql.DB, sl *slog.Logger, store *session.Store) int {
-	sqlstr := ` SELECT
-					facility
-				FROM public.users u, public.employee e
-				WHERE u.user_employee = e.employee_id AND u.user_id= $1`
-
-	userID, _ := GetUser(c, sl, store)
-
-	var facility int
-	if err := db.QueryRowContext(c.Context(), sqlstr, userID).Scan(&facility); err != nil {
+	userID := GetCurrentUser(c, store)
+	if userID == 0 {
 		return 0
 	}
-	return facility
+
+	var facilityID int
+	err := db.QueryRowContext(c.Context(), "SELECT facility FROM public.employee WHERE employee_id = $1", userID).Scan(&facilityID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			sl.Error("Error getting facility", "error", err)
+		}
+		return 0
+	}
+	return facilityID
 }
 
-func Get_Client_Optionz() (opt map[string]map[string]string) {
-	opt = make(map[string]map[string]string)
-	// Add data to the map of maps
-	opt["sex"] = map[string]string{"": " -- ", "1": "Male", "2": "Female"}
-	opt["sex2"] = map[string]string{"": " -- ", "Male": "Male", "Female": "Female"}
-	opt["occup"] = map[string]string{"": " -- ", "1": "Healthcare worker", "2": "Non-Healthcare worker"}
-	opt["yn"] = map[string]string{"": " -- ", "1": "Yes", "2": "No"}
-	opt["yn_extra"] = map[string]string{"": " -- ", "1": "Yes", "2": "No", "3": "Unknown"}
-	opt["marital"] = map[string]string{"": " -- ",
-		"1": "Married",
-		"2": "Cohabiting",
-		"3": "Widowed",
-		"4": "Separated",
-		"5": "Divorced",
-		"6": "Single",
-	}
-	opt["nationality"] = map[string]string{"": " -- ", "1": "Ugandan", "2": "EAC", "3": "Other"}
-	opt["ethnicity"] = map[string]string{"": " -- ", "1": "Black", "2": "Other"}
-	opt["mental"] = map[string]string{"": " -- ", "a": "A", "v": "V", "p": "P", "u": "U"}
-
-	opt["preg"] = map[string]string{"": " -- ", "1": "Yes", "2": "No", "3": "ND"}
-	opt["ward"] = map[string]string{"": " -- ", "1": "Ward", "2": "ICU"}
-	opt["result1"] = map[string]string{"": " -- ", "1": "Pos", "2": "Neg", "3": "indeterminate"}
-	opt["result2"] = map[string]string{"": " -- ", "1": "Pos", "2": "Neg", "3": "ND"}
-	return
-}
-
-// {{ GetDBOptions "site" "" "" "employee" "Employee" .FormChild2.Hyperglycemia.Int64}}
-
-func GetDBOptions(table, cat, deflt, fld_name, fld_lab string, deflt_int int64) string {
-	sql := ""
-	rtn := ""
-	switch table {
-	case "Employee":
-		sql = "SELECT employee_id as code, CONCAT(employee_fname, ' ', employee_lname) AS  lab FROM public.employee"
-
-	case "function":
-		sql = "SELECT function_id as code, function_name as lab FROM public.function"
-	case "site":
-		sql = "SELECT facility_id as code, facility_name as lab FROM public.facility"
-	case "test":
-	case "meta":
-		sql = "Select meta_id as code, meta_name as lab from meta, meta_category WHERE meta.meta_category=meta_category.meta_category_id AND meta_category_name='" + cat + "'"
+// GetDBInt retrieves an integer value from the database based on the given parameters
+func GetDBInt(table, field, cat, filter string, defaultValue int) int {
+	if dbG == nil || CtxG == nil {
+		return defaultValue
 	}
 
-	res, er := models.GetFields(CtxG.Context(), dbG, sql)
-	if er != nil {
-		log.Println("Error getting fields:", er)
-		return ""
+	query := fmt.Sprintf("SELECT %s FROM %s", field, table)
+	if cat != "" {
+		query += " WHERE " + cat
 	}
-	i := 0
-	for _, values := range res {
-
-		if deflt == "" {
-			zvalue, _ := strconv.ParseInt(values[0], 10, 64)
-			if zvalue == deflt_int {
-				rtn = rtn + fmt.Sprintf(`<option value="%s" selected>%s</option>`, values[0], values[1])
-			} else {
-				rtn = rtn + fmt.Sprintf(`<option value="%s">%s</option>`, values[0], values[1])
-			}
+	if filter != "" {
+		if cat != "" {
+			query += " AND " + filter
 		} else {
-			if values[0] == deflt {
-				rtn = rtn + fmt.Sprintf(`<option value="%s" selected>%s</option>`, values[0], values[1])
-			} else {
-				rtn = rtn + fmt.Sprintf(`<option value="%s">%s</option>`, values[0], values[1])
-			}
-		}
-		i++
-
-	}
-	addString := ""
-	if i > 1 {
-		addString = `<option value=""> -- </option>`
-	}
-
-	return `<select class="form-control-sm patient-input form-select" name="` + fld_name + `" id="` + fld_name + `" aria-label="` + fld_lab + `">
-			` + addString + rtn + `
-			</select>`
-}
-
-func GetClientOptionLabel(arrayKey, mapKey string) string {
-	options := Get_Client_Optionz()
-
-	if subMap, exists := options[arrayKey]; exists {
-		if label, found := subMap[mapKey]; found {
-			return label
+			query += " WHERE " + filter
 		}
 	}
-	return "" // Return an empty string if the keys are not found
-}
 
-func GetDBLabel(table, namesFld, indexFld string, indexID int64) string {
-	// Use parameterized query to prevent SQL injection
-	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", namesFld, table, indexFld)
-	var label string
-	label = ""
-	err := dbG.QueryRowContext(CtxG.Context(), query, indexID).Scan(&label)
+	var value int
+	err := dbG.QueryRowContext(CtxG.Context(), query).Scan(&value)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Println("No rows found for ID:", indexID)
-			return ""
+		if err != sql.ErrNoRows {
+			log.Printf("Error getting DB int: %v", err)
 		}
-		log.Println("Error executing query:", err)
-		return ""
+		return defaultValue
 	}
-	return label
-}
-
-func GetDBInt(table, namesFld, indexFld, whereString string, indexID int64) int64 {
-	// Use parameterized query to prevent SQL injection
-	query := ""
-	var label int
-	label = 0
-
-	var err error
-
-	if whereString == "" {
-		query = fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", namesFld, table, indexFld)
-		err = dbG.QueryRowContext(CtxG.Context(), query, indexID).Scan(&label)
-	} else {
-		query = fmt.Sprintf("SELECT %s FROM %s WHERE %s", namesFld, table, whereString)
-		err = dbG.QueryRowContext(CtxG.Context(), query).Scan(&label)
-	}
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			fmt.Println("No rows found for ID:", indexID)
-			DoZaLogging("INFO", "No rows found for ID "+strconv.Itoa(int(indexID))+": ", err)
-			return 0
-		}
-
-		DoZaLogging("ERROR", "Error executing query:", err)
-		return 0
-	}
-	return int64(label)
-
+	return value
 }
