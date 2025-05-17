@@ -113,24 +113,51 @@ func IsNullStringEmpty(nullable sql.NullString) bool {
 
 // GenerateHTML renders an HTML template with given data
 func GenerateHTML(c *fiber.Ctx, db *sql.DB, zdata interface{}, filenames ...string) error {
-	var files []string
-	// Always include the layout template first
-	files = append(files, GetPath("../../ui/html/layout.html"))
-	// Then add the requested templates
-	for _, file := range filenames {
-		files = append(files, GetPath(fmt.Sprintf("../../ui/html/%s.html", file)))
+	// Use a relative path from cmd/web to the templates directory
+	basePath := filepath.Join("..", "..", "ui", "html")
+
+	// Log the path for debugging
+	log.Printf("Looking for templates in: %s", basePath)
+
+	// First, load the layout template
+	layoutFile := filepath.Join(basePath, "layout.html")
+	layoutContent, err := os.ReadFile(layoutFile)
+	if err != nil {
+		return c.Status(500).SendString(fmt.Sprintf("Failed to read layout template: %v", err))
 	}
 
-	// Parse templates using the global functions variable
-	templates, err := template.New("").Funcs(CreateTemplateFunctions(c, db)).ParseFiles(files...)
+	// Create a new template with the layout
+	templates := template.New("layout").Funcs(CreateTemplateFunctions(c, db))
+
+	// Parse the layout template first
+	_, err = templates.Parse(string(layoutContent))
 	if err != nil {
-		return c.Status(500).SendString("Template parsing error: " + err.Error())
+		return c.Status(500).SendString(fmt.Sprintf("Failed to parse layout template: %v", err))
+	}
+
+	// Add the requested templates
+	for _, file := range filenames {
+		filePath := filepath.Join(basePath, file+".html")
+		if _, err := os.Stat(filePath); err != nil {
+			return c.Status(500).SendString(fmt.Sprintf("Template file not found: %s (error: %v)", filePath, err))
+		}
+
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			return c.Status(500).SendString(fmt.Sprintf("Failed to read template file %s: %v", filePath, err))
+		}
+
+		// Parse the template content
+		_, err = templates.Parse(string(content))
+		if err != nil {
+			return c.Status(500).SendString(fmt.Sprintf("Failed to parse template %s: %v", filePath, err))
+		}
 	}
 
 	// Execute template and write output
 	c.Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(c.Response().BodyWriter(), "layout", zdata); err != nil {
-		return c.Status(500).SendString("Template execution error: " + err.Error())
+		return c.Status(500).SendString(fmt.Sprintf("Template execution error: %v", err))
 	}
 
 	return nil
